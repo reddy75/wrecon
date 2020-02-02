@@ -25,7 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Purpose:
 Start 'tmate' session on remote PC over Weechat.
 - tmate session is started only for granted server(s)
-- communication between servers is accomplish over a registered IRC #Channel
+- communication between servers is accomplished over a registered IRC #Channel
 - IRC #Channel is encrypted via ircrypt
 
 
