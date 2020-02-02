@@ -6,6 +6,7 @@
 # Author       : Radek Valasek
 # Contact      : radek.valasek.75@gmail.com
 # License      : GPL3
+# GIT          : https://github.com/reddy75/wrecon
 # Description  : Script for controll remote server
 # Requirements : weechat, python3, tmate, ircrypt (script for weechat)
 
