@@ -26,7 +26,7 @@ Purpose:
 Start 'tmate' session on remote PC over Weechat.
 
 
-Depencies:
+Dependencies:
 Weechat, Tmate, Python3, Python3 modules - ast, base64, datetime, hashlib, os, random, string, sys, time, weechat
 
 
