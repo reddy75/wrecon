@@ -24,10 +24,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 Purpose:
 Start 'tmate' session on remote PC over Weechat.
+- tmate session is started only for granted server(s)
+- communication between servers is accomplish over a registered IRC #Channel
+- IRC #Channel is encrypted via ircrypt
 
 
 Dependencies:
 Weechat, Tmate, Python3, Python3 modules - ast, base64, datetime, hashlib, os, random, string, sys, time, weechat
+
+
+Limitations:
+- only one IRC #Channel with IRC Server is allowed to register
+- supported platform is only linux and android (9/10 - with termux installed)
 
 
 Tested on platform:
