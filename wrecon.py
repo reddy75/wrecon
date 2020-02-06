@@ -101,7 +101,7 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.00'
+SCRIPT_VERSION   = '1.01'
 SCRIPT_TIMESTAMP = '20200201152400CET'
 SCRIPT_AUTHOR    = 'Radek Valasek <radek.valasek.75@gmail.com>'
 SCRIPT_LICENSE   = 'GPL3'
@@ -1315,7 +1315,11 @@ UNREGISTER UNREG[ISTER]
       OUT_MSG = ['>>> START MESSAGE from %s : %s' % (remote_bot_id, args[2])]
       OUT_MSG.append('')
       for O_M in SSH_GLOBAL_OUTPUT:
-        OUT_MSG.append('%s' % (O_M.split('|')[1]))
+        if '|' in O_M:
+          O_MESS = O_M.split('|')[1]
+        else:
+          O_MESS = O_M
+        OUT_MSG.append(O_MESS)
       OUT_MSG.append('')
       OUT_MSG.append('END OF MESSAGE from %s : %s <<<' % (remote_bot_id, args[2]))
       OUT_MSG.append('')
