@@ -5,10 +5,12 @@
 # ======================================================================
 # Author       : Radek Valasek
 # Contact      : radek.valasek.75@gmail.com
-# License      : GPL3
-# GIT          : https://github.com/reddy75/wrecon
+# Licence      : GPL3
 # Description  : Script for controll remote server
 # Requirements : weechat, python3, tmate, ircrypt (script for weechat)
+
+# GIT          : https://github.com/reddy75/wrecon
+# BUG REPORT   : https://github.com/reddy75/wrecon-issues/issues
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,55 +26,31 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
-# 1.01 - Validation improvement
-#        - static length of random generated string replaced by generating 
-#          string of dynamic length (for better security purpose)
+# 1.01 - Bug fix
 # 1.00 - First release
 
-## PURPOSE
-# Purpose of script is to start a 'tmate' session on remote server
-#
-#
-## !!! IMPORTANT NOTE BEFORE USING - ENLIGHTENMENT AND RECOMMENDATION !!!
-# - Is always your responsibility how you handle with secret information.
-# - Keep in mind - be careful what and where you share information, particularly
-# secret information about your configurations of #Channel KEY, #Channel encrypt KEY,
-# BOT ID's and BOT KEY's.
-# - Information should be secret, and can be known only to person you fully trust.
-# - Secret information share by secure channel, for example by encrypted email.
-# - In case a secret information (any part of setup of your wrecon) leaked then
-# is recommended to change this information immediatelly.
-# - Keep in mind, that every message in buffer are logged according to your setup
-# of Weechat, and based on setup log level 9 (default) can be retrieved all information
-# of your setup (for example, displayed result of command /wrecon me) 
-# - Script was designed for home purpose only.
-# - Script can be used in your company/organisation also, but ensure you have
-# proper approval of your company/organisation.
-# - Ensure, you have also installed 'ircrypt' and is automatically loaded in Weechat
-# - Ensure, your Weechat have enabled Secure data with password protected. Wrecon
-# using Secure data for storing important variables.
-# - Choice strong #Channel KEY and strong #Channel encrypt KEY for your #Channel.
-# (Check limitation of length of IRC Server for a #Channel KEY). Is recommended
-# use longest #Channel KEY as possible.
-# - Author of script is not responsible for any security incidents or difficulties caused by using script.
-#
-#
-## LIMITATIONS
-# Script allows you to register only one #Channel with one IRC Server (there is
-# no plan to change it)
-# Script is written in Python3 and there is no plan to support lower version of Python
-# Script is written for linux systems and was written only for Weechat
-# Script BOT's are communicating only through registered #Channel (communication
-# PROTOCOL can not be hidden, because script is working with BUFFER only, and final
-# encryption/decryption of all messages is provided by 'ircrypt')
+# Purpose:
+# Start 'tmate' session on remote PC over Weechat.
+# - tmate session is started only for granted server(s)
+# - communication between servers is accomplished over a registered IRC #Channel
+# - IRC #Channel is encrypted via ircrypt
 # 
-#
-## SCRIPT WAS TESTED ON FOLLOWING PLATFORMS
+# 
+# Dependencies:
+# Weechat, Tmate, Python3, Python3 modules - ast, base64, datetime, hashlib, os, random, string, sys, time, weechat
+# 
+# 
+# Limitations:
+# - only one IRC #Channel with IRC Server is allowed to register
+# - supported platform is only linux and android (9/10 - with termux installed)
+# 
+# 
+# Tested on platform:
 # - Fedora 30/31
 # - Xubuntu 18.04
 # - Android 9/10 (in termux)
-#
-#
+
+
 ## FIRST START - EXAMPLE
 # Connect to an IRC Server, then choice a #Channel you want to register and then
 # type /wrecon register channelkey channelencryptkey
@@ -106,7 +84,7 @@
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
 SCRIPT_VERSION   = '1.01 devel'
-SCRIPT_TIMESTAMP = '20200201163051CET'
+SCRIPT_TIMESTAMP = '20200206205000CET'
 SCRIPT_AUTHOR    = 'Radek Valasek <radek.valasek.75@gmail.com>'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote Controll (WRECON)'
@@ -1319,7 +1297,11 @@ UNREGISTER UNREG[ISTER]
       OUT_MSG = ['>>> START MESSAGE from %s : %s' % (remote_bot_id, args[2])]
       OUT_MSG.append('')
       for O_M in SSH_GLOBAL_OUTPUT:
-        OUT_MSG.append('%s' % (O_M.split('|')[1]))
+        if '|' in O_M:
+          O_MESS = O_M.split('|')[1]
+        else:
+          O_MESS = O_M
+        OUT_MSG.append(O_MESS)
       OUT_MSG.append('')
       OUT_MSG.append('END OF MESSAGE from %s : %s <<<' % (remote_bot_id, args[2]))
       OUT_MSG.append('')
@@ -1455,8 +1437,7 @@ UNREGISTER UNREG[ISTER]
           if v_validated == False:
             # Ensure validation
             global wrecon_bot_key, BUFFER_CMD_VAL_EXE
-            random_len = random.randint(23, 31)
-            generate_seecret = f_random_generator(random_len)
+            generate_seecret = f_random_generator(31)
             send_secret = f_encrypt_string(generate_seecret, wrecon_bot_key)
             BUFFER_CMD_VAL_FUNCTION[v_command_key] = [generate_seecret, call_requested_function, tags, prefix, args]
             weechat.command(buffer, '%s %s %s %s %s' % (BUFFER_CMD_VAL_EXE, args[1], args[0], args[2], send_secret))
