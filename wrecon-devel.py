@@ -9,8 +9,11 @@
 # Description  : Script for controll remote server
 # Requirements : weechat, python3, tmate, ircrypt (script for weechat)
 
-# GIT          : https://github.com/reddy75/wrecon
-# BUG REPORT   : https://github.com/reddy75/wrecon-issues/issues
+# GIT ................... : https://github.com/reddy75/wrecon
+# LATEST RELEASE ........ : https://github.com/reddy75/wrecon/releases
+# BUG REPORTS ........... : https://github.com/reddy75/wrecon/issues
+# IMPROVEMENT SUGGESTIONS : https://github.com/reddy75/wrecon/issues
+# WIKI / HELP ........... : https://github.com/reddy75/wrecon/wiki
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,6 +29,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.02 - Bug fix issue #1
+#        added github links into header
 # 1.01 - Bug fix
 # 1.00 - First release
 
@@ -83,8 +88,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.01 devel'
-SCRIPT_TIMESTAMP = '20200206205000CET'
+SCRIPT_VERSION   = '1.02 devel'
+SCRIPT_TIMESTAMP = '20200208182816CET'
 SCRIPT_AUTHOR    = 'Radek Valasek <radek.valasek.75@gmail.com>'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote Controll (WRECON)'
@@ -276,6 +281,65 @@ else:
   #
   ##### END FUNCTION GET BUFFERS AND BUFFER OF REGISTERED CHANNEL
   
+  #####
+  #
+  # FUNCTIONS ADD/DEL/SAVE CHANNEL TO/FROM irc.server.<servername>.autojoin
+  
+  # FUNCTION ADD CHANNEL TO AUTOJOIN
+  
+  def f_setup_autojoin_add(buffer, wrecon_server, new_channel):
+    save_setup              = False
+    wrecon_channel_autojoin = weechat.string_eval_expression("${irc.server.%s.autojoin}" % (wrecon_server), {}, {}, {})
+    wrecon_chan_key         = '${sec.data.wrecon_channel_key}'
+    my_channels             = wrecon_channel_autojoin.split(' ')[0].split(',')
+    my_channels_keys        = wrecon_channel_autojoin.split(' ')[1].split(',')
+    
+    if not new_channel in my_channels:
+      my_channels.append(new_channel)
+      my_channels_keys.append(wrecon_chan_key)
+      f_setup_autojoin_save(buffer, my_channels, my_channels_keys)
+      save_setup = True
+    else:
+      # Find index of my registered channel and test it have properly setup secure key
+      my_channel_index = [i for i, elem in enumerate(my_channels) if new_channel in elem]
+      for my_index in my_channel_index:        
+        if not wrecon_chan_key in my_channels_keys[my_index]:
+          my_channels_keys[my_index] = wrecon_chan_key
+          save_setup = True
+      if save_setup == True:
+        f_setup_autojoin_save(buffer, my_channels, my_channels_keys)
+    return save_setup
+  
+  # FUNCTION DEL CHANNEL FROM AUTOJOIN
+  
+  def f_setup_autojoin_del(buffer, wrecon_server, del_channel):
+    save_setup = False
+    wrecon_channel_autojoin = weechat.string_eval_expression("${irc.server.%s.autojoin}" % (wrecon_server), {}, {}, {})
+    wrecon_chan_key         = '${sec.data.wrecon_channel_key}'
+    my_channels             = wrecon_channel_autojoin.split(' ')[0].split(',')
+    my_channels_keys        = wrecon_channel_autojoin.split(' ')[1].split(',')
+    
+    if del_channel in my_channels:
+      # Find index of my registered channel
+      my_channel_index = [i for i, elem in enumerate(my_channels) if del_channel in elem]
+      for my_index in my_channel_index:
+        del my_channels[my_index]
+        del my_channels_keys[my_index]
+      f_setup_autojoin_save(buffer, my_channels, my_channels_keys)
+      save_setup = True
+    return save_setup
+  
+  # FUNCTION SAVE DATA FOR AUTOJOIN, called only when data was changed
+  
+  def f_setup_autojoin_save(buffer, my_channels, my_channels_keys):
+    export_channels = ','.join(map(str, my_channels))
+    export_keys     = ','.join(map(str, my_channels_keys))
+    export_data     = '%s %s' % (export_channels, export_keys)
+    weechat.command(buffer, '/set irc.server.%s.autojoin %s' % (wrecon_server, export_data))
+    return
+  
+  #
+  ##### END FUNCTIONS ADD/REMOVE/SAVE CHANNEL TO/FROM irc.server.<servername>.autojoin
   
   #####
   #
@@ -986,7 +1050,6 @@ UNREGISTER UNREG[ISTER]
         save_options = False
         wrecon_server_autoconnect   = weechat.string_eval_expression("${irc.server.%s.autoconnect}" % (wrecon_server), {}, {}, {})
         wrecon_server_autoreconnect = weechat.string_eval_expression("${irc.server.%s.autoreconnect}" % (wrecon_server), {}, {}, {})
-        wrecon_channel_autojoin     = weechat.string_eval_expression("${irc.server.%s.autojoin}" % (wrecon_server), {}, {}, {}).split(',')
         wrecon_channel_autorejoin   = weechat.string_eval_expression("${irc.server.%s.autorejoin}" % (wrecon_server), {}, {}, {})
         
         if wrecon_server_autoconnect != 'on':
@@ -1001,17 +1064,9 @@ UNREGISTER UNREG[ISTER]
           weechat.command(buffer, '/set irc.server.%s.autorejoin on' % (wrecon_server))
           save_options = True
         
-        channel_index = [i for i, elem in enumerate(wrecon_channel_autojoin) if wrecon_channel in elem]
-        if not channel_index:
-          wrecon_channel_autojoin.append('%s ${sec.data.wrecon_channel_key}' % (wrecon_channel))
-          wrecon_channel_autojoinx = ','.join(map(str, wrecon_channel_autojoin))
-          weechat.command(buffer, '/set irc.server.%s.autojoin %s' % (wrecon_server, wrecon_channel_autojoinx))
-          save_option = True
-        else:
-          wrecon_channel_autojoin[channel_index[0]] = '%s ${sec.data.wrecon_channel_key}' % (wrecon_channel)
-          wrecon_channel_autojoinx = ','.join(map(str, wrecon_channel_autojoin))
-          weechat.command(buffer, '/set irc.server.%s.autojoin %s' % (wrecon_server, wrecon_channel_autojoinx))
-          save_option = True
+        setup_add = f_setup_autojoin_add(buffer, wrecon_server, wrecon_channel)
+        if setup_add == True:
+          save_options = True
         
         if save_options == True:
           weechat.command(buffer, '/save')
@@ -1329,15 +1384,8 @@ UNREGISTER UNREG[ISTER]
     global wrecon_channel, wrecon_server, wrecon_channel_key, wrecon_channel_encryption_key
     v_err = False
     if wrecon_channel and wrecon_server:
-      save_options = False
-      wrecon_channel_autojoin     = weechat.string_eval_expression("${irc.server.%s.autojoin}" % (wrecon_server), {}, {}, {}).split(',')
       
-      channel_index = [i for i, elem in enumerate(wrecon_channel_autojoin) if wrecon_channel in elem]
-      if channel_index:
-        del wrecon_channel_autojoin[channel_index[0]]
-        wrecon_channel_autojoinx = ','.join(map(str, wrecon_channel_autojoin))
-        weechat.command(buffer, '/set irc.server.%s.autojoin %s' % (wrecon_server, wrecon_channel_autojoinx))
-        save_option = True
+      save_options = f_setup_autojoin_del(buffer, wrecon_server, wrecon_channel)
         
       if save_options == True:
         weechat.command(buffer, '/save')
@@ -1605,17 +1653,10 @@ UNREGISTER UNREG[ISTER]
   #
   # AND HOOK COMMAND
   
-  #info_message     = ['NAME : ' + SCRIPT_NAME]
-  #info_message.append('DESC : ' + SCRIPT_DESC)
-  #info_message.append('ARGS : ' + SCRIPT_ARGS)
-  #info_message.append('ARGD : ' + SCRIPT_ARGS_DESCRIPTION)
-  #info_message.append('COMP : ' + SCRIPT_COMPLETION)
-  #info_message.append('CALL : ' + SCRIPT_CALLBACK)
-  #f_message('','','INFO', info_message)
   wrecon_hook_local_commands = weechat.hook_command(SCRIPT_NAME, SCRIPT_DESC, SCRIPT_ARGS, SCRIPT_ARGS_DESCRIPTION, SCRIPT_COMPLETION, SCRIPT_CALLBACK, '')
   
   #####
   #
-  # IN CASE WE HAVE REGISTERED SERVER AND CHANNEL, WE WILL CONNECT THERE AUTOMATICALLY
+  # TRY CONNECT AUTOMATICALLY (in case we have registered CHANNEL & SERVER)
   
   f_autoconnect()
