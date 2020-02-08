@@ -3,8 +3,13 @@ Weechat Remote Controll
 Author     : Radek Valasek
 Contact    : radek.valasek.75@gmail.com
 Licence    : GPL3
-GIT        : https://github.com/reddy75/wrecon
-BUG REPORT : https://github.com/reddy75/wrecon-issues/issues
+
+GIT ................... : https://github.com/reddy75/wrecon
+LATEST RELEASE ........ : https://github.com/reddy75/wrecon/releases
+BUG REPORTS ........... : https://github.com/reddy75/wrecon/issues
+IMPROVEMENT SUGGESTIONS : https://github.com/reddy75/wrecon/issues
+WIKI / HELP ........... : https://github.com/reddy75/wrecon/wiki
+
 ---
 
 This program is free software; you can redistribute it and/or modify
