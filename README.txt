@@ -1,4 +1,4 @@
-Weechat Remote Controll
+Weechat Remote Control
 
 Author     : Radek Valasek
 Contact    : radek.valasek.75@gmail.com
