@@ -4,7 +4,7 @@
 # Weechat Remote Controll
 # ======================================================================
 # Author       : Radek Valasek
-# Contact      : radek.valasek.75@gmail.com
+# Contact      : https://github.com/reddy75/wrecon/issues
 # Licence      : GPL3
 # Description  : Script for controll remote server
 # Requirements : weechat, python3, tmate, ircrypt (script for weechat)
@@ -88,8 +88,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.02'
-SCRIPT_TIMESTAMP = '20200208182816CET'
+SCRIPT_VERSION   = '1.03'
+SCRIPT_TIMESTAMP = '20200213160907CET'
 SCRIPT_AUTHOR    = 'Radek Valasek <radek.valasek.75@gmail.com>'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote Controll (WRECON)'
