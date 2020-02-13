@@ -4,7 +4,7 @@
 # Weechat Remote Control
 # ======================================================================
 # Author       : Radek Valasek
-# Contact      : radek.valasek.75@gmail.com
+# Contact      : https://github.com/reddy75/wrecon/issues
 # Licence      : GPL3
 # Description  : Script for control remote server
 # Requirements : weechat, python3, tmate, ircrypt (script for weechat)
@@ -32,6 +32,7 @@
 #      - TODO Added new security feature for GRANTed BOTs
 #      - TODO Added new UPDATE feature (check and install new version from GIT repo)
 # x.yy - Added autoadvertise request from local PC for non-advertised remote BOT when calling SSH
+#      - Added better self encryption/decryption algorithm (level 2)
 #      - Small fixes of parts of short help
 #      - Small fixes of parts of comments of code
 # 1.02 - Bug fix issue #1
@@ -222,6 +223,24 @@ else:
       o_c = chr((ord(encryptkey[i]) + ord(k_c)) % 256)
       out.append(o_c)
     return base64.urlsafe_b64encode(''.join(out).encode()).decode()
+  
+  def f_encrypt_string_L2(mystring, encryptkey):
+    def f_enc(mystring, enckey):
+      xkey = enckey
+      while len(mystring) > len(enckey):
+        enckey += xkey
+      out = []
+      for i in range(len(mystring)):
+        k_c = mystring[i % len(mystring)]
+        o_c = chr((ord(enckey[i]) + ord(k_c)) % 256)
+        out.append(o_c)
+      return ''.join(out)
+    new_encrypt_key = f_get_hash(encryptkey)
+    my_salt         = f_random_generator(8)
+    enc_result_l1   = f_enc(mystring, my_salt + encryptkey)
+    enc_result_l2   = f_enc(my_salt + enc_result_l1, new_encrypt_key)
+    return base64.urlsafe_b64encode(enc_result_l2.encode()).decode()
+  
   #
   # DECRYPT
   #
@@ -232,7 +251,25 @@ else:
       k_c = encryptkey[i % len(encryptkey)]
       d_c = chr((256 + ord(enc[i]) - ord(k_c)) % 256)
       out.append(d_c)
-    return ''.join(out)      
+    return ''.join(out)
+  
+  def f_decrypt_string_L2(mystring, encryptkey):
+    def f_dec(mystring, deckey):
+      xkey = deckey
+      while len(mystring) > len(deckey):
+        deckey +=  xkey
+      out = []
+      for i in range(len(mystring)):
+        k_c = deckey[i % len(deckey)]
+        d_c = chr((256 + ord(mystring[i]) - ord(k_c)) % 256)
+        out.append(d_c)
+      return ''.join(out)
+    str_dec         = base64.urlsafe_b64decode(mystring).decode()
+    new_encrypt_key = f_get_hash(encryptkey)
+    dec_result_l2   = f_dec(str_dec, new_encrypt_key)
+    my_salt         = dec_result_l2[:8]
+    dec_result_l1   = f_dec(dec_result_l2[8:], my_salt + encryptkey)
+    return dec_result_l1
   
   #
   #### END FUNCTION ENCRYPT AND DECTRYPT STRING
@@ -1487,8 +1524,10 @@ UNREGISTER UNREG[ISTER]
             del ADDITIONAL_ADVERTISE[additional_key]
         else:
           # In new version GRANTED bot need additional data for verification
-          # This will be additional requested for BOTs since version 1.10 only
-          # 
+          # This will be additional requested for BOTs since version 1.1.0 only
+          # Future plan is to remove support lower version 1.1.0
+          
+          
           
           # 3. check remote bot was verified
           global wrecon_remote_bots_verified, BUFFER_CMD_VAL_FUNCTION
@@ -1679,5 +1718,5 @@ UNREGISTER UNREG[ISTER]
   #####
   #
   # TRY CONNECT AUTOMATICALLY (in case we have registered CHANNEL & SERVER)
-  
+
   f_autoconnect()
