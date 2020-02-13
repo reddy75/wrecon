@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # CODING=UTF8
 #
-# Weechat Remote Controll
+# Weechat Remote Control
 # ======================================================================
 # Author       : Radek Valasek
 # Contact      : radek.valasek.75@gmail.com
 # Licence      : GPL3
-# Description  : Script for controll remote server
+# Description  : Script for control remote server
 # Requirements : weechat, python3, tmate, ircrypt (script for weechat)
 
 # GIT ................... : https://github.com/reddy75/wrecon
@@ -29,6 +29,11 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+#      - TODO Added new security feature for GRANTed BOTs
+#      - TODO Added new UPDATE feature (check and install new version from GIT repo)
+# x.yy - Added autoadvertise request from local PC for non-advertised remote BOT when calling SSH
+#      - Small fixes of parts of short help
+#      - Small fixes of parts of comments of code
 # 1.02 - Bug fix issue #1
 #        added github links into header
 # 1.01 - Bug fix
@@ -71,7 +76,7 @@
 # On Server B grant remote access for remote BOT of Server A by
 # /wrecon grant abc
 #
-# Now your wrecon is prepared to controll Server B from Server A, and you can try
+# Now your wrecon is prepared to control Server B from Server A, and you can try
 # on Server A start 'tmate' session on Server B by
 # /wrecon ssh ghi
 #
@@ -88,11 +93,11 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.02 devel'
-SCRIPT_TIMESTAMP = '20200208182816CET'
+SCRIPT_VERSION   = '1.1.0 devel'
+SCRIPT_TIMESTAMP = ''
 SCRIPT_AUTHOR    = 'Radek Valasek <radek.valasek.75@gmail.com>'
 SCRIPT_LICENSE   = 'GPL3'
-SCRIPT_DESC      = 'Weechat Remote Controll (WRECON)'
+SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
 SCRIPT_UNLOAD    = 'wrecon_unload'
 
 SCRIPT_CONTINUE  = True
@@ -493,7 +498,7 @@ else:
   
   def f_change_buffer_title():
     global wrecon_server, wrecon_channel, wrecon_bot_name, wrecon_bot_id, wrecon_buffer_channel
-    weechat.buffer_set(wrecon_buffer_channel, 'title', 'Weechat Remote Controll - %s - %s - %s [%s]' % (wrecon_server, wrecon_channel, wrecon_bot_name, wrecon_bot_id))
+    weechat.buffer_set(wrecon_buffer_channel, 'title', 'Weechat Remote control - %s - %s - %s [%s]' % (wrecon_server, wrecon_channel, wrecon_bot_name, wrecon_bot_id))
     return weechat.WEECHAT_RC_OK
   
   #
@@ -557,13 +562,13 @@ else:
   #
   # BASIC VARIABLES OF REGISTERED REMOTE BOTS
   #
-  # CONTROLL   - bots you can controll remotely on remote system
+  # control   - bots you can control remotely on remote system
   #              table contain BOT IDs and it's BOT KEYs
   #
-  # GRANTED    - bots from remote system can controll your system (you grant controol of your system)
+  # GRANTED    - bots from remote system can control your system (you grant controol of your system)
   #              table contain only BOT IDs
   #
-  # VERIFIED   - runtime variable of bots from remote system can controll your system only after verification
+  # VERIFIED   - runtime variable of bots from remote system can control your system only after verification
   #              table contain BOT IDs and additional info from irc_channel of related NICK
   #              in case information of remote NICK will be changed, then new verification will be triggered
   #
@@ -571,16 +576,16 @@ else:
   #              have actual state
   #              table contain BOT IDs and BOT NAMEs only
   
-  global wrecon_remote_bots_controll, wrecon_remote_bots_granted, wrecon_remote_bots_verified, wrecon_remote_bots_advertised
-  wrecon_remote_bots_controll   = weechat.string_eval_expression("${sec.data.wrecon_remote_bots_controll}",{},{},{})
+  global wrecon_remote_bots_control, wrecon_remote_bots_granted, wrecon_remote_bots_verified, wrecon_remote_bots_advertised
+  wrecon_remote_bots_control   = weechat.string_eval_expression("${sec.data.wrecon_remote_bots_control}",{},{},{})
   wrecon_remote_bots_granted    = weechat.string_eval_expression("${sec.data.wrecon_remote_bots_granted}",{},{},{})
   wrecon_remote_bots_verified   = {}
   wrecon_remote_bots_advertised = {}
   
-  if wrecon_remote_bots_controll:
-    wrecon_remote_bots_controll = ast.literal_eval(wrecon_remote_bots_controll)
+  if wrecon_remote_bots_control:
+    wrecon_remote_bots_control = ast.literal_eval(wrecon_remote_bots_control)
   else:
-    wrecon_remote_bots_controll = {}
+    wrecon_remote_bots_control = {}
   
   if wrecon_remote_bots_granted:
     wrecon_remote_bots_granted = ast.literal_eval(wrecon_remote_bots_granted)
@@ -607,7 +612,7 @@ else:
   'underline'  : weechat.color('underline'),
   'nunderline' : weechat.color('-underline')}
   SCRIPT_ARGS_DESCRIPTION = '''
-  %(bold)s%(underline)sWeechat Remote Controll (WRECON) commands and options:%(nunderline)s%(nbold)s
+  %(bold)s%(underline)sWeechat Remote control (WRECON) commands and options:%(nunderline)s%(nbold)s
   ''' % COLOR_TEXT
 
   #####
@@ -628,10 +633,10 @@ else:
   
   #####
   #
-  # COMMAND ADD REMOTE BOT YOU WILL CONTROLL
+  # COMMAND ADD REMOTE BOT YOU WILL control
   
-  def command_add_controlled_bot(data, buffer, args):
-    global wrecon_remote_bots_controll
+  def command_add_controled_bot(data, buffer, args):
+    global wrecon_remote_bots_control
     v_err       = False
     v_err_topic = 'ADD ERROR'
     if len(args) >= 2:
@@ -643,11 +648,11 @@ else:
         new_remote_bot_note = ' '.join(map(str, args))
       else:
         new_remote_bot_note = ''
-      if new_remote_bot_id in wrecon_remote_bots_controll:
+      if new_remote_bot_id in wrecon_remote_bots_control:
         f_message(data, buffer, v_err_topic, ['ALREADY ADDED. First DEL, then ADD.'])
       else:
-        wrecon_remote_bots_controll[new_remote_bot_id] = [new_remote_bot_key, new_remote_bot_note]
-        weechat.command(buffer, '/secure set wrecon_remote_bots_controll %s' % (wrecon_remote_bots_controll))
+        wrecon_remote_bots_control[new_remote_bot_id] = [new_remote_bot_key, new_remote_bot_note]
+        weechat.command(buffer, '/secure set wrecon_remote_bots_control %s' % (wrecon_remote_bots_control))
         f_message_simple(data, buffer, 'BOT SUCCESSFULLY ADDED')
     else:
       v_err = True
@@ -661,16 +666,16 @@ else:
   SCRIPT_ARGS                = SCRIPT_ARGS + ' | [ADD <botid> <botkey> [note]]'
   SCRIPT_ARGS_DESCRIPTION    = SCRIPT_ARGS_DESCRIPTION + '''
   %(bold)s%(italic)s--- ADD <botid> <botkey> [note]%(nitalic)s%(nbold)s
-  Add remote bot for your controll. By command ADVERTISE you will know %(italic)sbotid%(nitalic)s, but the %(italic)sbotkey%(nitalic)s you need receive by safe way.''' % COLOR_TEXT + '''
-  Oposit of command ADD is command DEL.
+  Add remote bot for your control. By command ADVERTISE you will know %(italic)sbotid%(nitalic)s, but the %(italic)sbotkey%(nitalic)s you need receive by safe way.''' % COLOR_TEXT + '''
+  Opposite of command ADD is command DEL.
     /wrecon ADD %s %s
     /wrecon ADD %s %s %s
     ''' % (f_random_generator(16), f_random_generator(64), f_random_generator(16), f_random_generator(64), random.choice(wrecon_default_botnames))
   SCRIPT_COMPLETION          = SCRIPT_COMPLETION + ' || ADD'
-  SCRIPT_COMMAND_CALL['add'] = command_add_controlled_bot
+  SCRIPT_COMMAND_CALL['add'] = command_add_controled_bot
   
   #
-  ##### END COMMAND ADD REMOTE BOT YOU WILL CONTROLL
+  ##### END COMMAND ADD REMOTE BOT YOU WILL control
   
 
   #####
@@ -773,17 +778,17 @@ else:
 
   #####
   #
-  # COMMAND DELETE REMOTE BOT FROM CONTROLL
+  # COMMAND DELETE REMOTE BOT FROM control
   
-  def command_del_controll_bot(data, buffer, args):
-    global wrecon_remote_bots_controll
+  def command_del_control_bot(data, buffer, args):
+    global wrecon_remote_bots_control
     v_err       = False
     v_err_topic = 'DELETE ERROR'
     if args:
       if len(args) == 1:
-        if args[0] in wrecon_remote_bots_controll:
-          del wrecon_remote_bots_controll[args[0]]
-          weechat.command(buffer, '/secure set wrecon_remote_bots_controll %s' % (wrecon_remote_bots_controll))
+        if args[0] in wrecon_remote_bots_control:
+          del wrecon_remote_bots_control[args[0]]
+          weechat.command(buffer, '/secure set wrecon_remote_bots_control %s' % (wrecon_remote_bots_control))
           f_message(data, buffer, 'DELETE', ['BOT SUCCESSFULLY DELETED'])
         else:
           f_message(data, buffer, v_err_topic, ['UNKNOWN BOT ID'])
@@ -801,15 +806,15 @@ else:
   SCRIPT_ARGS                   = SCRIPT_ARGS + ' | [DEL[ETE] <botid>]'
   SCRIPT_ARGS_DESCRIPTION       = SCRIPT_ARGS_DESCRIPTION + '''
   %(bold)s%(italic)s--- DEL <botid>%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
-  Delete remote bot from your controll.
+  Delete remote bot from your control.
     /wrecon DEL %s
   ''' % (f_random_generator(16))
   SCRIPT_COMPLETION             = SCRIPT_COMPLETION + ' || DEL || DELETE'
-  SCRIPT_COMMAND_CALL['del']    = command_del_controll_bot
-  SCRIPT_COMMAND_CALL['delete'] = command_del_controll_bot
+  SCRIPT_COMMAND_CALL['del']    = command_del_control_bot
+  SCRIPT_COMMAND_CALL['delete'] = command_del_control_bot
   
   #
-  ##### END COMMAND DELETE REMOTE BOT FROM CONTROLL
+  ##### END COMMAND DELETE REMOTE BOT FROM control
 
 
   #####
@@ -839,7 +844,7 @@ else:
   SCRIPT_ARGS_DESCRIPTION      = SCRIPT_ARGS_DESCRIPTION + '''
   %(bold)s%(italic)s--- G[RANT] <botid> [note]%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
   Grant access to your system for remote bot by botid. For update of your note of bot you can do execute GRANT command again.
-  Opposit of command GRANT is command REVOKE.
+  Opposite of command GRANT is command REVOKE.
     /wrecon GRANT %s
     /wrecon G %s
     /wrecon G %s %s
@@ -873,8 +878,8 @@ HELP       H[ELP]
 LIST       A[DDED]|G[RANTED]
 ME         M[E]
 REGISTER   REG[ISTER] channelkey channelencryptkey
-RENAME     M[YBOT]| botid a new name
-REVOKE     R[EVOKE] botid
+RENAME     REN[AME] M[YBOT]|botid a new name
+REVOKE     REV[OKE] botid
 SSH        S[SH] botid
 UNREGISTER UNREG[ISTER]
 
@@ -918,7 +923,7 @@ UNREGISTER UNREG[ISTER]
   # COMMAND LIST
   
   def command_list_bot(data, buffer, args):
-    global wrecon_remote_bots_controll, wrecon_remote_bots_granted, wrecon_remote_bots_advertised
+    global wrecon_remote_bots_control, wrecon_remote_bots_granted, wrecon_remote_bots_advertised
     v_err       = False
     v_err_topic = 'LIST ERROR'
     v_topic     = 'LIST INFO'
@@ -927,12 +932,12 @@ UNREGISTER UNREG[ISTER]
       if v_param in ['a', 'added', 'g', 'granted']:
         out_message = []
         if v_param in ['a', 'added']:
-          if wrecon_remote_bots_controll:
-            for reg_bot in wrecon_remote_bots_controll:
-              if len(wrecon_remote_bots_controll[reg_bot]) == 1:
+          if wrecon_remote_bots_control:
+            for reg_bot in wrecon_remote_bots_control:
+              if len(wrecon_remote_bots_control[reg_bot]) == 1:
                 out_msg = reg_bot
               else:
-                out_msg = '%s - %s' % (reg_bot, wrecon_remote_bots_controll[reg_bot][1])
+                out_msg = '%s - %s' % (reg_bot, wrecon_remote_bots_control[reg_bot][1])
               if reg_bot in wrecon_remote_bots_advertised:
                 out_msg = out_msg + ' (%s)' % wrecon_remote_bots_advertised[reg_bot].split('|')[0]
               out_message.append(out_msg)
@@ -966,7 +971,7 @@ UNREGISTER UNREG[ISTER]
   SCRIPT_ARGS                   = SCRIPT_ARGS + ' | [L[IST] <A[DDED]>|<G[RANTED]>]'
   SCRIPT_ARGS_DESCRIPTION       = SCRIPT_ARGS_DESCRIPTION + '''
   %(bold)s%(italic)s--- L[IST] <A[DDED]>|<G[RANTED]>%(nitalic)s%(nbold)s
-  List of ADDED bots you can controll, or GRANTED bots which can controll your system.
+  List of ADDED bots you can control, or GRANTED bots which can control your system.
     /wrecon LIST ADDED
     /wrecon L A
     /wrecon LIST G
@@ -1082,8 +1087,8 @@ UNREGISTER UNREG[ISTER]
   SCRIPT_ARGS                     = SCRIPT_ARGS + ' | [REG[ISTER] <CHANNEL_KEY> <ENCRYPT_KEY>]'
   SCRIPT_ARGS_DESCRIPTION         = SCRIPT_ARGS_DESCRIPTION + '''
   %(bold)s%(italic)s--- REGISTER <channel_key> <encrypt_key>%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
-  Register current channel for controlling remote bot's. You have to be actively connected to server and joined in channel you need register.
-  Opposit of command REGISTER is command UNREGISTER.
+  Register current channel for controling remote bot's. You have to be actively connected to server and joined in channel you need register.
+  Opposite of command REGISTER is command UNREGISTER.
     /wrecon REG %s %s
     /wrecon REGISTER %s %s
   ''' % (f_random_generator(8), f_random_generator(16), f_random_generator(8), f_random_generator(16))
@@ -1156,15 +1161,15 @@ UNREGISTER UNREG[ISTER]
     if args[0] == wrecon_bot_id:
       f_save_new_name(data, buffer, f_get_name(0, args))
     else:
-      # Check if bot is registered
-      global wrecon_remote_bots_controll
-      if args[0] in wrecon_remote_bots_controll:
+      # Check if bot is registered (added in bots you control)
+      global wrecon_remote_bots_control
+      if args[0] in wrecon_remote_bots_control:
         global BUFFER_CMD_REN_EXE, uniq_hash_cmd_rename
         uniq_hash_cmd_rename = f_command_counter()
         # PROTOCOL: COMMAND TO_BOT_ID FROM_BOT_ID HASH [DATA]
         weechat.command(buffer, '%s %s %s %s %s' % (BUFFER_CMD_REN_EXE, args[0], wrecon_bot_id, uniq_hash_cmd_rename, f_get_name(0, args)))
       else:
-        f_message(data, buffer, 'RENAME ERROR', ['REMOTE BOT %s IS NOT REGISTERED' % (args[0])])
+        f_message(data, buffer, 'RENAME ERROR', ['REMOTE BOT %s IS NOT ADDED/REGISTERED' % (args[0])])
     return weechat.WEECHAT_RC_OK
   
   global remote_cmd_rename_hash, remote_cmd_rename_botid
@@ -1221,7 +1226,7 @@ UNREGISTER UNREG[ISTER]
   SCRIPT_ARGS                   = SCRIPT_ARGS + ' | [REV[OKE] <botid>]'
   SCRIPT_ARGS_DESCRIPTION       = SCRIPT_ARGS_DESCRIPTION + '''
   %(bold)s%(italic)s--- REV[OKE] <botid>%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
-  Revoke granted access to your system for bot.
+  Revoke granted access to your system of remote bot.
     /wrecon REVOKE %s
     /wrecon REV %s
     ''' % (f_random_generator(16), f_random_generator(16))
@@ -1245,21 +1250,31 @@ UNREGISTER UNREG[ISTER]
   SSH_GLOBAL_OUTPUT = []
   
   def command_ssh(data, buffer, args):
-    global wrecon_remote_bots_controll
+    global wrecon_remote_bots_control
     v_err       = False
     v_err_topic = 'SSH ERROR'
     v_topic     = 'SSH INFO'
     # PROTOCOL: COMMAND TO_BOT_ID FROM_BOT_ID HASH [DATA]
     if len(args) == 1:
-      global wrecon_remote_bots_controll
+      global wrecon_remote_bots_control
       # 1. Check we have registered remote bot
-      if not args[0] in wrecon_remote_bots_controll:
-        f_message(data, buffer, v_err_topic, ['REMOTE BOT %s IS NOT REGISTERED' % (args[0])])
+      if not args[0] in wrecon_remote_bots_control:
+        f_message(data, buffer, v_err_topic, ['REMOTE BOT %s IS NOT ADDED/REGISTERED' % (args[0])])
       else:
         global wrecon_remote_bots_advertised
         # 2. Check remote bot has been advertised
         if not args[0] in wrecon_remote_bots_advertised:
-          f_message(data, buffer, v_err_topic, ['REMOTE BOT %s WAS NOT ADVERTISED' % (args[0])])
+          global ADDITIONAL_ADVERTISE
+          additional_key = '%s%s' % (args[1], args[2])
+          if not additional_key in ADDITIONAL_ADVERTISE:
+            # Initiate additional advertise of remote bot
+            global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP
+            weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[1], args[0], args[2], SCRIPT_VERSION, SCRIPT_TIMESTAMP))
+            ADDITIONAL_ADVERTISE[additional_key] = [call_requested_function, data, buffer, tags, prefix, args]
+          else:
+            # In case remote bot has been additionally asked for advertisement and was not advertised, then it is error
+            f_message(data, buffer, v_err_topic, ['REMOTE BOT %s WAS NOT ADVERTISED' % (args[0])])
+            del ADDITIONAL_ADVERTISE[additional_key]
         else:
           global wrecon_bot_id, BUFFER_CMD_SSH_EXE
           uniq_hash_cmd_ssh = f_command_counter()
@@ -1343,7 +1358,7 @@ UNREGISTER UNREG[ISTER]
   
   # Receive SSH (tmate) data from remote BOT
   def receive_ssh_reply(data, buffer, tags, prefix, args):
-    global wrecon_remote_bots_controll, BUFFER_CMD_SSH_REK, SSH_GLOBAL_OUTPUT
+    global wrecon_remote_bots_control, BUFFER_CMD_SSH_REK, SSH_GLOBAL_OUTPUT
     remote_bot_id = args[1]
     if BUFFER_CMD_SSH_REK in args:
       f_message_simple(data, buffer, '')
@@ -1364,8 +1379,8 @@ UNREGISTER UNREG[ISTER]
       # ~ f_message_simple(data, buffer, '%s : %s' % (args[2], dec_message))
       SSH_GLOBAL_OUTPUT = []
     else:
-      dec_key     = wrecon_remote_bots_controll[remote_bot_id][0]
-      dec_message = f_decrypt_string(args[3], wrecon_remote_bots_controll[args[1]][0])
+      dec_key     = wrecon_remote_bots_control[remote_bot_id][0]
+      dec_message = f_decrypt_string(args[3], wrecon_remote_bots_control[args[1]][0])
       SSH_GLOBAL_OUTPUT.append(dec_message)
     return weechat.WEECHAT_RC_OK
   
@@ -1414,8 +1429,10 @@ UNREGISTER UNREG[ISTER]
   
   SCRIPT_ARGS                       = SCRIPT_ARGS + ' | [UNREG[ISTER]]'
   SCRIPT_ARGS_DESCRIPTION           = SCRIPT_ARGS_DESCRIPTION + '''
-  %(bold)s%(italic)s--- UNRE[GISTER]%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
-  Unregister channel of controlling remote bot's.
+  %(bold)s%(italic)s--- UNREG[ISTER]%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
+  Unregister channel of controling remote bot's.
+      /wrecon UNREG
+      /wrecon UNREGISTER
   '''
   SCRIPT_COMPLETION                 = SCRIPT_COMPLETION + ' || UNREG || UNREGISTER'
   SCRIPT_COMMAND_CALL['unreg']      = command_unregister_channel
@@ -1465,10 +1482,14 @@ UNREGISTER UNREG[ISTER]
             weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[1], args[0], args[2], SCRIPT_VERSION, SCRIPT_TIMESTAMP))
             ADDITIONAL_ADVERTISE[additional_key] = [call_requested_function, data, buffer, tags, prefix, args]
           else:
-            # In case remote bot has been additionally asked for advertisement and was not advertised, then it is error (script on remote site stopped or stuck)
+            # In case remote bot has been additionally asked for advertise and was not advertised, then it is error (script on remote site stopped or stuck)
             reply_validation_error(data, buffer, 'PROTOCOL VIOLATION - REMOTE BOT WAS NOT ADVERTISED', args)
             del ADDITIONAL_ADVERTISE[additional_key]
         else:
+          # In new version GRANTED bot need additional data for verification
+          # This will be additional requested for BOTs since version 1.10 only
+          # 
+          
           # 3. check remote bot was verified
           global wrecon_remote_bots_verified, BUFFER_CMD_VAL_FUNCTION
           v_validated = False
@@ -1495,8 +1516,8 @@ UNREGISTER UNREG[ISTER]
   
   # ~ BUFFER_CMD_VAL_EXE
   def receive_validation(data, buffer, tags, prefix, args):
-    global wrecon_remote_bots_controll, BUFFER_CMD_VAL_REP
-    decrypt_key      = wrecon_remote_bots_controll[args[1]][0]
+    global wrecon_remote_bots_control, BUFFER_CMD_VAL_REP
+    decrypt_key      = wrecon_remote_bots_control[args[1]][0]
     decrypt_message  = f_decrypt_string(args[3], decrypt_key)
     count_hash       = f_get_hash(decrypt_message)
     send_secret_hash = f_encrypt_string(count_hash, decrypt_key)
