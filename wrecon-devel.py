@@ -32,6 +32,7 @@
 #      - TODO Added new security feature for GRANTed BOTs
 #      - Added better self encryption/decryption algorithm (level 2)
 #      - TODO Added new UPDATE feature (check and install new version from GIT repo)
+# 1.05 - Bug fix issue #3
 # 1.04 - Bug fix issue #2
 #      - Removed never used variable(s)
 #      - Added autoadvertise request from local PC for non-advertised remote BOT when calling SSH
@@ -96,10 +97,11 @@
 # BASIC INITIALIZATION
 # try import modules for python and check version of python
 
-global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
+global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
 SCRIPT_VERSION   = '1.05 devel'
 SCRIPT_TIMESTAMP = ''
+SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
 SCRIPT_UNLOAD    = 'wrecon_unload'
@@ -145,7 +147,7 @@ else:
   #
   # INITIALIZE SCRIP FOR WEECHAT
   
-  weechat.register(SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, 'UTF-8')
+  weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, 'UTF-8')
   
   #####
   #
