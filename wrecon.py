@@ -29,7 +29,11 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+#      - TODO Added new security feature for GRANTed BOTs
+#      - Added better self encryption/decryption algorithm (level 2)
+#      - TODO Added new UPDATE feature (check and install new version from GIT repo)
 # 1.04 - Bug fix issue #2
+#      - Removed never used variable(s)
 #      - Added autoadvertise request from local PC for non-advertised remote BOT when calling SSH
 #      - Small bug fixes
 # 1.03 - Update Contact field
@@ -92,11 +96,10 @@
 # BASIC INITIALIZATION
 # try import modules for python and check version of python
 
-global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
+global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.04'
-SCRIPT_TIMESTAMP = '20200215085011CET'
-SCRIPT_AUTHOR    = 'Radek Valasek <radek.valasek.75@gmail.com>'
+SCRIPT_VERSION   = '1.05 devel'
+SCRIPT_TIMESTAMP = ''
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
 SCRIPT_UNLOAD    = 'wrecon_unload'
@@ -142,7 +145,7 @@ else:
   #
   # INITIALIZE SCRIP FOR WEECHAT
   
-  weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, 'UTF-8')
+  weechat.register(SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, 'UTF-8')
   
   #####
   #
@@ -219,7 +222,7 @@ else:
   def f_encrypt_string(mystring, encryptkey):
     xkey = encryptkey
     while len(mystring) > len(encryptkey):
-      encryptkey += xkey
+      encryptkey +=  xkey
     out = []
     for i in range(len(mystring)):
       k_c = mystring[i % len(mystring)]
@@ -240,7 +243,7 @@ else:
       d_c = chr((256 + ord(enc[i]) - ord(k_c)) % 256)
       out.append(d_c)
     return ''.join(out)
-  
+
   #
   #### END FUNCTION ENCRYPT AND DECTRYPT STRING
   

@@ -30,10 +30,10 @@
 
 # Changelog:
 #      - TODO Added new security feature for GRANTed BOTs
-#      - TODO Added new UPDATE feature (check and install new version from GIT repo)
-#      - Removed never used variable(s)
 #      - Added better self encryption/decryption algorithm (level 2)
+#      - TODO Added new UPDATE feature (check and install new version from GIT repo)
 # 1.04 - Bug fix issue #2
+#      - Removed never used variable(s)
 #      - Added autoadvertise request from local PC for non-advertised remote BOT when calling SSH
 #      - Small bug fixes
 # 1.03 - Update Contact field
@@ -220,6 +220,9 @@ else:
   # ENCRYPT
   
   def f_encrypt_string(mystring, encryptkey):
+    xkey = encryptkey
+    while len(mystring) > len(encryptkey):
+      encryptkey += xkey
     out = []
     for i in range(len(mystring)):
       k_c = mystring[i % len(mystring)]
@@ -248,6 +251,9 @@ else:
   # DECRYPT
   #
   def f_decrypt_string(mystring, encryptkey):
+    xkey = encryptkey
+    while len(mystring) > len(encryptkey):
+      encryptkey += xkey
     out = []
     enc = base64.urlsafe_b64decode(mystring).decode()
     for i in range(len(enc)):
@@ -1526,11 +1532,9 @@ UNREGISTER UNREG[ISTER]
             reply_validation_error(data, buffer, 'PROTOCOL VIOLATION - REMOTE BOT WAS NOT ADVERTISED', args)
             del ADDITIONAL_ADVERTISE[additional_key]
         else:
-          # In new version GRANTED bot need additional data for verification
-          # This will be additional requested for BOTs since version 1.1.0 only
-          # Future plan is to remove support lower version 1.1.0
-          
-          
+          # TODO
+          # - add new feature for GRANTed BOT (request additional data for first time)
+          # - this new feature will be incompatible with older version
           
           # 3. check remote bot was verified
           global wrecon_remote_bots_verified, BUFFER_CMD_VAL_FUNCTION
