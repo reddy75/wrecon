@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.12 - Version fix
 # 1.11 - Bug fix for HELP command
 # 1.10 - Command UPDATE added - New feature (check and install new version from GIT repo)
 #      - Added UNIQUE HASH to all called commands
@@ -102,8 +103,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.11'
-SCRIPT_TIMESTAMP = '20200221163511CET'
+SCRIPT_VERSION   = '1.12'
+SCRIPT_TIMESTAMP = '20200221164005CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
