@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.11 - Bug fix for HELP command
 # 1.10 - Command UPDATE added - New feature (check and install new version from GIT repo)
 #      - Added UNIQUE HASH to all called commands
 #      - Command UNREGISTER changed to UN[REGISTER]
@@ -102,7 +103,7 @@
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
 SCRIPT_VERSION   = '1.10'
-SCRIPT_TIMESTAMP = '20200221160932CET'
+SCRIPT_TIMESTAMP = '20200221162650CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1234,7 +1235,7 @@ UPDATE     UP[DATE] [botid]
 <<<BriefHelp
   '''
   
-  def command_help(data, buffer, args):
+  def command_help(data, buffer, cmd_hash, args):
     global SCRIPT_SELF_PATH, HELP_TAG_START, HELP_TAG_END
     SHOW_HELP   = False
     SCRIPT_FILE = open(SCRIPT_SELF_PATH, 'r')
