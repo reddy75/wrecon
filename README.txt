@@ -5,7 +5,7 @@ Contact    : https://github.com/reddy75/wrecon/issues
 Licence    : GPL3
 
 GIT ................... : https://github.com/reddy75/wrecon
-LATEST RELEASE ........ : https://github.com/reddy75/wrecon/releases
+LATEST RELEASE ........ : https://github.com/reddy75/wrecon/releases/latest
 BUG REPORTS ........... : https://github.com/reddy75/wrecon/issues
 IMPROVEMENT SUGGESTIONS : https://github.com/reddy75/wrecon/issues
 WIKI / HELP ........... : https://github.com/reddy75/wrecon/wiki

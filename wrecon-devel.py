@@ -10,7 +10,7 @@
 # Requirements : weechat, python3, tmate, ircrypt (script for weechat)
 
 # GIT ................... : https://github.com/reddy75/wrecon
-# LATEST RELEASE ........ : https://github.com/reddy75/wrecon/releases
+# LATEST RELEASE ........ : https://github.com/reddy75/wrecon/releases/latest
 # BUG REPORTS ........... : https://github.com/reddy75/wrecon/issues
 # IMPROVEMENT SUGGESTIONS : https://github.com/reddy75/wrecon/issues
 # WIKI / HELP ........... : https://github.com/reddy75/wrecon/wiki
@@ -31,7 +31,11 @@
 # Changelog:
 #      - TODO Added new security feature for GRANTed BOTs
 #      - Added better self encryption/decryption algorithm (level 2)
-#      - TODO Added new UPDATE feature (check and install new version from GIT repo)
+# 1.10 - Command UPDATE added - New feature (check and install new version from GIT repo)
+#      - Added UNIQUE HASH to all called commands
+#      - Command UNREGISTER changed to UN[REGISTER]
+#      - Help for UNREGISTER updated
+#      - Corrected LATEST RELEASE in header of script
 # 1.05 - Bug fix issue #3
 # 1.04 - Bug fix issue #2
 #      - Removed never used variable(s)
@@ -99,7 +103,7 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.05 devel'
+SCRIPT_VERSION   = '1.04 devel'
 SCRIPT_TIMESTAMP = ''
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
@@ -108,7 +112,7 @@ SCRIPT_UNLOAD    = 'wrecon_unload'
 
 SCRIPT_CONTINUE  = True
 import importlib
-for import_mod in ['weechat', 'string', 'random', 'time', 'sys', 'hashlib', 'base64', 'ast', 'datetime', 'os']:
+for import_mod in ['ast', 'base64', 'contextlib', 'datetime', 'gnupg', 'hashlib', 'json', 'os', 'random', 'shutil', 'string', 'sys', 'tarfile', 'time', 'urllib', 'weechat']:
   if type(import_mod) is str:
     try:
       import_object = importlib.import_module(import_mod, package=None)
@@ -116,7 +120,7 @@ for import_mod in ['weechat', 'string', 'random', 'time', 'sys', 'hashlib', 'bas
       # ~ print('[%s v%s] > module %s imported' % (SCRIPT_NAME, SCRIPT_VERSION, import_mod))
     except ImportError:
       SCRIPT_CONTINUE = False
-      print('[%s v%s] > module %s import error' % (SCRIPT_NAME, SCRIPT_VERSION, import_mod))
+      print('[%s v%s] > module >> %s << import error' % (SCRIPT_NAME, SCRIPT_VERSION, import_mod))
   else:
     basemodule = import_mod[0]
     import_mod.pop(0)
@@ -149,6 +153,131 @@ else:
   
   weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, 'UTF-8')
   
+  #####
+  #
+  # FUNCTIONS FOR VERIFY SIGNATURE OF FILE
+  
+  def f_verify_signature_file(work_directory):
+    global PUBLIC_KEY
+    
+    verify_successful = False
+    
+    file_verify    = os.path.join(work_directory, 'wrecon.py')
+    file_signature = os.path.join(work_directory, 'wrecon.py.sig')
+    
+    gpg        = gnupg.GPG()
+    public_key = gpg.import_keys(PUBLIC_KEY)
+    
+    try:
+      with open(file_signature, 'rb') as sigfile:
+        verify_me = gpg.verify_file(sigfile, '%s' % file_verify)
+      sigfile.close()
+    finally:
+      if verify_me:
+        pk_content = public_key.__dict__
+        vf_content = verify_me.__dict__
+        fp_pk      = str(pk_content['results'][0]['fingerprint'])
+        fp_vf      = str(vf_content['fingerprint'])
+        if fp_pk == fp_vf:
+          verify_successful = True
+    
+    del gpg
+    del public_key
+    del pk_content
+    del vf_content
+    
+    return verify_successful
+
+  #
+  ##### END OF FUNCTIONS FOR VERIFY SIGNATURE OF FILE
+  
+  ####
+  #
+  # PUBLIC KEY
+  
+  global PUBLIC_KEY
+  PUBLIC_KEY ='''
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+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
+KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
+=FtIt
+-----END PGP PUBLIC KEY BLOCK-----
+  '''
+  
+  #
+  ##### END OF PUBLIC KEY
+
   #####
   #
   # FUNCTION FOR GENERATING RANDOM CHARACTERS AND NUMBERS
@@ -285,6 +414,216 @@ else:
   #
   #### END FUNCTION ENCRYPT AND DECTRYPT STRING
   
+  #####
+  #
+  # FUNCTION CHECK AND UPDATE
+  
+  def f_check_for_new_version(data, buffer):
+    global SCRIPT_VERSION
+    import urllib.request
+    update_me = False
+    f_message_simple(data, buffer, 'CHECKING FOR UPDATE')
+
+    actual_version = SCRIPT_VERSION.split(' ')[0]
+    latest_release = 'checking...'
+    update_result  = False
+    base_name      = 'reddy75/wrecon'
+    base_url       = 'https://github.com/%s/archive' % base_name
+    base_api       = 'https://api.github.com/repos/%s/releases/latest' % base_name
+    
+    f_message_simple(data, buffer, 'ACTUAL VERSION  : %s' % actual_version)
+    
+    error_get  = False
+    try:
+      url_data = urllib.request.urlopen(base_api)
+    except urllib.error.HTTPError as e:
+      error_get  = True
+      error_data = e.__dict__
+    except urllib.error.URLerror as e:
+      error_get  = True
+      error_data = e.__dict__
+    except urllib.error.ContentTooShortError() as e:
+      error_get  = True
+      error_data = e.__dict__
+    
+    if error_get == True:
+      out_err_msg = []
+      out_err_msg.append('AN ERROR OCCURED DURING CHECK OF LATEST VERSION FROM GITHUB')
+      out_err_msg.append('REQUESTED URL : %s' % base_api)
+      out_err_msg.append('ERROR CODE    : %s' % error_data['code'])
+      out_err_msg.append('ERROR MESSAGE : %s' % error_data['msg'])
+      f_message(data, buffer, 'UPDATE ERROR', out_err_msg)
+    else:
+      get_data       = json.loads(url_data.read().decode('utf8'))
+      latest_release = get_data['tag_name'].split('v')[1]
+      
+      f_message_simple(data, buffer, 'LATEST RELEASE  : %s' % latest_release)
+      
+      if actual_version >= latest_release:
+        f_message_simple(data, buffer, 'WRECON IS UP TO DATE')
+      else:
+        archive_file   = '%s.tar.gz' % latest_release
+        download_url   = '%s/%s' % (base_url, archive_file)
+        
+        out_msg = []
+        out_msg.append('DOWNLOAD FILE   : %s' % download_url)
+        
+        f_message(data, buffer, 'FOUND NEW RELEASE', out_msg)
+        extract_subdir = 'wrecon-%s' % latest_release
+        update_me = [latest_release, archive_file, download_url, extract_subdir]
+    return update_me
+    
+  
+  def f_check_and_update(data, buffer):
+    update_result = 'NOT UPDATED'
+    # First check new version is available
+    check_result = f_check_for_new_version(data, buffer)
+    # When we receive new data, we will try download, extract, check signed file, install new file and restart wrecon
+    if not check_result == False:
+      latest_release, archive_file, download_url, extract_subdir  = check_result
+      env_vars = os.environ
+      # ~ for env_var in env_vars.keys():
+        # ~ f_message_simple(data, buffer, '%32s : %s' % (env_var, env_vars[env_var]))
+        
+      download_dir = '%s/%s' % (env_vars['HOME'], 'wrecon-update')
+      
+      # ~ f_message_simple(data, buffer, 'DOWNLOAD DIR : %s' % download_dir)
+      
+      download_dir_exist = False
+      if not os.path.exists(os.path.join(download_dir)):
+        try:
+          os.mkdir(os.path.join(download_dir))
+          download_dir_exist = True
+        except OSError as e:
+          f_message(data, buffer, 'OS ERROR', ['Unable create download directyr'])
+      
+      if not os.path.isdir(os.path.join(download_dir)):
+        f_message(data, buffer, 'OS ERROR', ['Unable create download directyr'])
+      else:
+        start_download = False
+        download_file = os.path.join(download_dir, archive_file)
+        f_message_simple(data, buffer, 'DESTINATION     : %s' % download_file)
+        if not os.path.exists(download_file):
+          start_download = True
+        else:
+          if os.path.isfile(download_file):
+            try:
+              os.remove(download_file)
+              start_download = True
+            except OSError as e:
+              f_message(data, buffer, 'OS ERROR', ['Destination file exist, but can not be removed. Please clean up.'])
+          else:
+            f_message(data, buffer, 'OS ERROR', ['Destination path exist, check your system and clean up.'])
+        
+        if start_download == True:
+          successful_download = False
+          try:
+            #
+            # DOWNLOAD NEW FILE
+            #
+            import urllib.request
+            with urllib.request.urlopen(download_url) as response, open(download_file, 'wb') as out_file:
+              shutil.copyfileobj(response, out_file)
+            out_file.close()
+            f_message_simple(data, buffer, 'DOWNLOAD STATUS : SUCCESSFUL')
+            successful_download = True
+          except urllib.error.URLerror as e:
+            error_get  = True
+            error_data = e.__dict__
+          except urllib.error.ContentTooShortError() as e:
+            error_get  = True
+            error_data = e.__dict__
+          
+          if successful_download == False:
+            f_message_simple(data, buffer, 'DOWNLOAD STATUS : FAILED')
+            out_err_msg = []
+            out_err_msg.append('AN ERROR OCCURED DURING DOWNLOAD OF FILE FROM GITHUB')
+            out_err_msg.append('REQUESTED URL : %s' % download_url)
+            out_err_msg.append('ERROR CODE    : %s' % error_data['code'])
+            out_err_msg.append('ERROR MESSAGE : %s' % error_data['msg'])
+            f_message(data, buffer, 'UPDATE ERROR', out_err_msg)
+          else:
+            #
+            # EXTRACT ARCHIVE
+            #
+            current_cwd = os.getcwd()
+            os.chdir(download_dir)
+            error_extract = False
+            try:
+              extract_me  = tarfile.open(archive_file)
+              out_message = extract_me.extractall()
+            except TarError as e:
+              error_extract = True
+              error_message = e.__dict__
+            except ReadError as e:
+              error_extract = True
+              error_message = e.__dict__
+            except CompressionError as e:
+              error_extract = True
+              error_message = e.__dict__
+            except StreamError as e:
+              error_extract = True
+              error_message = e.__dict__
+            except ExtractError as e:
+              error_extract = True
+              error_message = e.__dict__
+            except HeaderError as e:
+              error_extract = True
+              error_message = e.__dict__
+              
+            if error_extract == True:
+              out_msg = []
+              out_msg.append('EXTRACT STATUS  : FAILED')
+              out_msg.append('ERROR MESSAGE   : %s' % error_message)
+              f_message(data, buffer, 'UPDATE ERROR', out_msg)
+            else:
+              f_message_simple(data, buffer, 'EXTRACT STATUS  : SUCCESSFUL')
+              work_path = os.path.join(download_dir, extract_subdir)
+              os.chdir(work_path)
+              #
+              # VERIFY SCRIPT FILE IS SIGNED BY AUTHOR
+              #
+              verify_successful = f_verify_signature_file(work_path)
+              if verify_successful == False:
+                f_message_simple(data, buffer, 'VERIFICATION    : FAILED')
+              else:
+                f_message_simple(data, buffer, 'VERIFICATION    : SUCCESSFUL')
+                #
+                # INSTALLATION OF NEW SCRIPT WHICH WAS VERIFIED SUCCESSFULLY
+                #
+                destination_dir  = weechat.string_eval_path_home('%h', {}, {}, {})
+                destination_dir  = str(os.path.join(destination_dir, 'python'))
+                destination_file = str(os.path.join(destination_dir, 'wrecon.py'))
+                source_file      = str(os.path.join(work_path, 'wrecon.py'))
+                copy_err         = False
+                try:
+                  copy_result = shutil.copyfile(source_file, destination_file, follow_symlinks=True)
+                  f_message_simple(data, buffer, 'INSTALLATION    : SUCCESSFUL')
+                except OSError as e:
+                  copy_err = True
+                  err_msg = e.__dict__
+                  err_msg = e
+                except shutil.SameFileError as e:
+                  copy_err = True
+                  err_msg = e.__dict__
+                
+                if copy_err == True:
+                  out_msg = []
+                  out_msg.append('INSTALLATION    : FAILED')
+                  out_msg.append('ERROR MESSAGE   : %s' % err_msg)
+                  f_message(data, buffer, 'INSTALLATION ERROR', out_msg)
+                else:
+                  #
+                  # AFTER SUCCESSFUL INSTALLATION RESTART WEECAHT
+                  #
+                  f_message_simple(data, buffer, 'RESTARTING WRECON...')
+                  weechat.command(buffer, '/wait 2s /script reload wrecon.py')
+                
+            os.chdir(current_cwd)
+    return update_result
+  
+  #
+  ##### END FUNCTION CHECK AND UPDATE
   
   #####
   #
@@ -513,7 +852,7 @@ else:
       if wrecon_auto_advertised == False:
         f_buffer_hook()
         f_autoconnect_channel_mode(wrecon_buffer_channel)
-        command_advertise('', wrecon_buffer_channel, '')
+        command_advertise('', wrecon_buffer_channel, '', '')
         wrecon_auto_advertised = True
     return weechat.WEECHAT_RC_OK
   
@@ -683,7 +1022,7 @@ else:
   #
   # COMMAND ADD REMOTE BOT YOU WILL control
   
-  def command_add_controled_bot(data, buffer, args):
+  def command_add_controled_bot(data, buffer, cmd_hash, args):
     global wrecon_remote_bots_control
     v_err       = False
     v_err_topic = 'ADD ERROR'
@@ -737,15 +1076,13 @@ else:
   BUFFER_CMD_ADA_EXE = '%sE-ADA' % (COMMAND_IN_BUFFER)
   BUFFER_CMD_ADA_REP = '%sADA-R' % (COMMAND_IN_BUFFER)
   
-  def command_advertise(data, buffer, args):
+  def command_advertise(data, buffer, cmd_hash, args):
     global BUFFER_CMD_EADV, BUFFER_CMD_ADV_REP, wrecon_bot_id, uniq_hash, wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP
     uniq_hash = f_command_counter()
     # PROTOCOL: COMMAND TO_BOTID|HASH FROM_BOTID HASH [DATA]
     
-    # debugging - remove after debugging >>>
     global wrecon_server, wrecon_channel
     f_change_modeop(data, buffer, wrecon_server, wrecon_channel)
-    # debugging - remove after debugging <<<
     
     weechat.command(buffer, '%s %s %s %s v%s %s' % (BUFFER_CMD_ADV_EXE, uniq_hash, wrecon_bot_id, uniq_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
     return weechat.WEECHAT_RC_OK
@@ -795,7 +1132,7 @@ else:
   def reply_advertise_additionally(data, buffer, tags, prefix, args):
     global BUFFER_CMD_ADA_REP, wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP
     f_message_simple(data, buffer, 'RECEIVED ADDITIONAL ADVERTISE from %s' % (args[1]))
-    weechat.command(buffer, '%s %s %s %s %s [%s-%s]' % (BUFFER_CMD_ADA_REP, args[1], args[0], args[2], wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
+    weechat.command(buffer, '%s %s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_REP, args[1], args[0], args[2], wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
     return weechat.WEECHAT_RC_OK
   
   def receive_advertise_additionally(data, buffer, tags, prefix, args):
@@ -869,7 +1206,7 @@ else:
   #
   # COMMAND GRANT
   
-  def command_grant_bot(data, buffer, args):
+  def command_grant_bot(data, buffer, cmd_hash, args):
     global wrecon_remote_bots_granted
     v_err       = False
     v_err_topic = 'GRANT ERROR'
@@ -929,7 +1266,8 @@ REGISTER   REG[ISTER] channelkey channelencryptkey
 RENAME     REN[AME] M[YBOT]|botid a new name
 REVOKE     REV[OKE] botid
 SSH        S[SH] botid
-UNREGISTER UNREG[ISTER]
+UNREGISTER UN[REGISTER]
+UPDATE     UP[DATE] [botid]
 
 <<<BriefHelp
   '''
@@ -970,7 +1308,7 @@ UNREGISTER UNREG[ISTER]
   #
   # COMMAND LIST
   
-  def command_list_bot(data, buffer, args):
+  def command_list_bot(data, buffer, cmd_hash, args):
     global wrecon_remote_bots_control, wrecon_remote_bots_granted, wrecon_remote_bots_advertised
     v_err       = False
     v_err_topic = 'LIST ERROR'
@@ -1073,7 +1411,7 @@ UNREGISTER UNREG[ISTER]
   #
   # COMMAND REGISTER CHANNEL
   
-  def command_register_channel(data, buffer, args):
+  def command_register_channel(data, buffer, cmd_hash, args):
     v_err = False
     if len(args) == 2:
       global wrecon_channel, wrecon_server, wrecon_channel_key, wrecon_channel_encryption_key, wrecon_buffer_channel
@@ -1203,7 +1541,7 @@ UNREGISTER UNREG[ISTER]
   SCRIPT_COMMAND_CALL['ren']    = command_rename
   SCRIPT_COMMAND_CALL['rename'] = command_rename
   
-  def command_rename_remote(data, buffer, args):
+  def command_rename_remote(data, buffer, cmd_hash, args):
     global wrecon_bot_id
     # Check if bot id belong to own bot
     if args[0] == wrecon_bot_id:
@@ -1297,7 +1635,7 @@ UNREGISTER UNREG[ISTER]
   uniq_hash_cmd_ssh = ''
   SSH_GLOBAL_OUTPUT = []
   
-  def command_ssh(data, buffer, args):
+  def command_ssh(data, buffer, cmd_hash, args):
     global wrecon_remote_bots_control
     v_err       = False
     v_err_topic = 'SSH ERROR'
@@ -1313,20 +1651,19 @@ UNREGISTER UNREG[ISTER]
         # 2. Check remote bot has been advertised
         if not args[0] in wrecon_remote_bots_advertised:
           global ADDITIONAL_ADVERTISE
-          additional_key = '%s%s' % (args[1], args[2])
+          additional_key = '%s%s' % (args[0], cmd_hash)
           if not additional_key in ADDITIONAL_ADVERTISE:
-            # Initiate additional advertise of remote bot
-            global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP
-            weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[1], args[0], args[2], SCRIPT_VERSION, SCRIPT_TIMESTAMP))
-            ADDITIONAL_ADVERTISE[additional_key] = [call_requested_function, data, buffer, tags, prefix, args]
+            # Request additional advertise of remote bot
+            global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP, SCRIPT_COMMAND_CALL
+            weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[1], args[0], cmd_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
+            ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['s'], data, buffer, tags, prefix, args]
           else:
             # In case remote bot has been additionally asked for advertisement and was not advertised, then it is error
             f_message(data, buffer, v_err_topic, ['REMOTE BOT %s WAS NOT ADVERTISED' % (args[0])])
             del ADDITIONAL_ADVERTISE[additional_key]
         else:
           global wrecon_bot_id, BUFFER_CMD_SSH_EXE
-          uniq_hash_cmd_ssh = f_command_counter()
-          weechat.command(buffer, '%s %s %s %s' % (BUFFER_CMD_SSH_EXE, args[0], wrecon_bot_id, uniq_hash_cmd_ssh))
+          weechat.command(buffer, '%s %s %s %s' % (BUFFER_CMD_SSH_EXE, args[0], wrecon_bot_id, cmd_hash))
     else:
       err_message     = ['INCORRECT NUMBER OF PARAMETERS > 1 expected, see following examples']
       err_message.append('/wrecon ssh botid')
@@ -1475,19 +1812,96 @@ UNREGISTER UNREG[ISTER]
       f_message(data, buffer, 'UNREGISTER ERROR', ['No server and channel is registered.'])
     return weechat.WEECHAT_RC_OK
   
-  SCRIPT_ARGS                       = SCRIPT_ARGS + ' | [UNREG[ISTER]]'
+  SCRIPT_ARGS                       = SCRIPT_ARGS + ' | [UN[REGISTER]]'
   SCRIPT_ARGS_DESCRIPTION           = SCRIPT_ARGS_DESCRIPTION + '''
-  %(bold)s%(italic)s--- UNREG[ISTER]%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
+  %(bold)s%(italic)s--- UN[REGIISTER]%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
   Unregister channel of controling remote bot's.
-      /wrecon UNREG
+      /wrecon UN
       /wrecon UNREGISTER
   '''
   SCRIPT_COMPLETION                 = SCRIPT_COMPLETION + ' || UNREG || UNREGISTER'
-  SCRIPT_COMMAND_CALL['unreg']      = command_unregister_channel
+  SCRIPT_COMMAND_CALL['un']         = command_unregister_channel
   SCRIPT_COMMAND_CALL['unregister'] = command_unregister_channel
   
   #
   ##### END COMMAND UNREGISTER CHANNEL
+  
+  #####
+  #
+  # COMMAND UPDATE
+  
+  global BUFFER_CMD_UPD_EXE
+  BUFFER_CMD_UPD_EXE = '%sE-UPD' % (COMMAND_IN_BUFFER)
+  
+  def command_update(data, buffer, cmd_hash, args):
+    # Check we want update itself (no arguments are expected)
+    v_err       = False
+    v_err_topic = 'UPDATE ERROR'
+    v_topic     = 'UPDATE INFO'
+    if not args:
+      f_check_and_update(data, buffer)
+    else:
+    # In case argument was provided, it consider it is remote BOTID
+      if len(args) != 1:
+        err_msg     = ['MORE ARGUMENTS > 1 or none expected.']
+        err_msg.append('/wrecon update [botid]')
+        f_message(data, buffer, v_err_topic, err_msg)
+      else:
+        global wrecon_bot_id
+        # Check BOTID belong to itself BOTID
+        if args[0] == wrecon_bot_id:
+          f_check_and_update(data, buffer)
+        else:
+          # Check we have registered remote bot
+          global wrecon_remote_bots_control
+          if not args[0] in wrecon_remote_bots_control:
+            f_message(data, buffer, v_err_topic, ['REMOTE BOT %s IS NOT ADDED/REGISTERED' % (args[0])])
+          else:
+            # Check remote bot has been advertised
+            global wrecon_remote_bots_advertised
+            if not args[0] in wrecon_remote_bots_advertised:
+              global ADDITIONAL_ADVERTISE
+              additional_key = '%s%s' % (args[0], cmd_hash)
+              if not additional_key in ADDITIONAL_ADVERTISE:
+                # Request additional advertise of remote bot
+                global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP, SCRIPT_COMMAND_CALL
+                weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[0], wrecon_bot_id, cmd_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
+                ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['up'], data, buffer, '', '', args]
+              else:
+                # In case remote bot has been additionally asked for advertisement and was not  advertised, then it is error
+                f_message(data, buffer, v_error_topic, ['REMOTE BOT %s WAS NOT ADVERTISED' % (args[0])])
+                del ADDITIONAL_ADVERTISE[additional_key]
+            else:
+              global BUFFER_CMD_UPD_EXE
+              weechat.command(buffer, '%s %s %s %s' % (BUFFER_CMD_UPD_EXE, args[0], wrecon_bot_id, cmd_hash))
+
+    return weechat.WEECHAT_RC_OK
+  
+  SCRIPT_ARGS                       = SCRIPT_ARGS + ' | [UP[DATE] [botid]]'
+  SCRIPT_ARGS_DESCRIPTION           = SCRIPT_ARGS_DESCRIPTION + '''
+  %(bold)s%(italic)s--- UP[DATE] [botid]%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
+  Update script from github. This will check new released version, and in case newest version is found, it will trigger update.
+  You can also update remote BOT if you are GRANTED to do. With no argument it will trigger update of local BOT, else update for remote BOT will be called.
+      /wrecon UP
+      /wrecon UPDATE %s
+  ''' % (f_random_generator(16))
+  SCRIPT_COMPLETION             = SCRIPT_COMPLETION + ' || UP || UPDATE'
+  SCRIPT_COMMAND_CALL['up']     = command_update
+  SCRIPT_COMMAND_CALL['update'] = command_update
+  
+  def receive_update(data, buffer, tags, prefix, args):
+    command_validate_remote_bot(data, buffer, f_update_validated, tags, prefix, args)
+    return weechat.WEECHAT_RC_OK
+  
+  # Call UPDATE PROCESS after remote BOT was validated
+  def f_update_validated(data, buffer, tags, prefix, args):
+    f_check_and_update(data, buffer)
+    return weechat.WEECHAT_RC_OK
+  
+  SCRIPT_BUFFER_CALL[BUFFER_CMD_UPD_EXE] = receive_update
+
+  #
+  ##### END COMMAND UPDATE
   
   #####
   #
@@ -1654,7 +2068,8 @@ UNREGISTER UNREG[ISTER]
           v_datasend = v_arguments[0].split(' ')
         else:
           v_datasend = ''
-        SCRIPT_COMMAND_CALL[v_command](data, buffer, v_datasend)
+        cmd_hash = f_command_counter()
+        SCRIPT_COMMAND_CALL[v_command](data, buffer, cmd_hash, v_datasend)
       else:
         f_message(data, buffer, 'ERROR', ['INVALID COMMAND > "%s"' % (v_command)])
     else:
