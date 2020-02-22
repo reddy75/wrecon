@@ -36,7 +36,9 @@ Start 'tmate' session on remote PC over Weechat.
 
 Dependencies:
 Weechat, Tmate, Python3
-Python3 modules - ast, base64, contextlib, datetime, gnupg, hashlib, json, os, random, shutil, string, sys, tarfile, time, urllib, weechat
+Python3 modules:
+- ast, base64, contextlib, datetime, gnupg, hashlib, json, os, random,
+- shutil, string, sys, tarfile, time, urllib
 
 
 Limitations:
