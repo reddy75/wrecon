@@ -29,6 +29,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.14 - Bug fix REMOTE RENAME
+# 1.13 - Bug fixes
 # 1.12 - Version fix
 # 1.11 - Bug fix for HELP command
 # 1.10 - Command UPDATE added - New feature (check and install new version from GIT repo)
@@ -103,8 +105,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.13'
-SCRIPT_TIMESTAMP = '2020022217501582390208'
+SCRIPT_VERSION   = '1.14'
+SCRIPT_TIMESTAMP = '20200222182036CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1505,7 +1507,7 @@ UPDATE     UP[DATE] [botid]
   SCRIPT_COMMAND_CALL['ren']    = command_rename
   SCRIPT_COMMAND_CALL['rename'] = command_rename
   
-  def command_rename_remote(data, buffer, cmd_hash, args):
+  def command_rename_remote(data, buffer, args):
     global wrecon_bot_id
     # Check if bot id belong to own bot
     if args[0] == wrecon_bot_id:
