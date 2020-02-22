@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.15 - Small fix in HELP - REGISTER
 # 1.14 - Bug fix REMOTE RENAME
 # 1.13 - Bug fixes
 # 1.12 - Version fix
@@ -105,8 +106,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.14'
-SCRIPT_TIMESTAMP = '20200222182036CET'
+SCRIPT_VERSION   = '1.15'
+SCRIPT_TIMESTAMP = '20200222184352CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1438,7 +1439,7 @@ UPDATE     UP[DATE] [botid]
   
   SCRIPT_ARGS                     = SCRIPT_ARGS + ' | [REG[ISTER] <CHANNEL_KEY> <ENCRYPT_KEY>]'
   SCRIPT_ARGS_DESCRIPTION         = SCRIPT_ARGS_DESCRIPTION + '''
-  %(bold)s%(italic)s--- REGISTER <channel_key> <encrypt_key>%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
+  %(bold)s%(italic)s--- REG[ISTER] <channel_key> <encrypt_key>%(nitalic)s%(nbold)s''' % COLOR_TEXT + '''
   Register current channel for controling remote bot's. You have to be actively connected to server and joined in channel you need register.
   Opposite of command REGISTER is command UNREGISTER.
     /wrecon REG %s %s
