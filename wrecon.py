@@ -103,8 +103,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.12'
-SCRIPT_TIMESTAMP = '20200221164005CET'
+SCRIPT_VERSION   = '1.13'
+SCRIPT_TIMESTAMP = '2020022217501582390208'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1129,7 +1129,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   #
   # COMMAND DELETE REMOTE BOT FROM control
   
-  def command_del_control_bot(data, buffer, args):
+  def command_del_control_bot(data, buffer, cmd_hash, args):
     global wrecon_remote_bots_control
     v_err       = False
     v_err_topic = 'DELETE ERROR'
@@ -1339,7 +1339,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMANDS ME
   
-  def command_me(data, buffer, args):
+  def command_me(data, buffer, cmd_hash, args):
     global wrecon_server, wrecon_channel, wrecon_channel_key, wrecon_channel_encryption_key, wrecon_bot_name, wrecon_bot_id, wrecon_bot_key, SCRIPT_VERSION, SCRIPT_TIMESTAMP
     info_message     = ['Bot Name  : %s' % (wrecon_bot_name)]
     info_message.append('Bot ID    : %s' % (wrecon_bot_id))
@@ -1471,7 +1471,7 @@ UPDATE     UP[DATE] [botid]
     return weechat.WEECHAT_RC_OK
   
 
-  def command_rename(data, buffer, args):
+  def command_rename(data, buffer, cmd_hash, args):
     v_err       = False
     v_err_topic = 'RENAME ERROR'
     v_topic     = 'RENAME INFO'
@@ -1552,7 +1552,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMAND REVOKE
   
-  def command_revoke(data, buffer, args):
+  def command_revoke(data, buffer, cmd_hash, args):
     global wrecon_remote_bots_granted
     v_err       = False
     v_err_topic = 'REVOKE ERROR'
@@ -1619,6 +1619,7 @@ UPDATE     UP[DATE] [botid]
           if not additional_key in ADDITIONAL_ADVERTISE:
             # Request additional advertise of remote bot
             global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP, SCRIPT_COMMAND_CALL
+            f_message_simple(data, buffer, 'ARGS : %s' % args)
             weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[1], args[0], cmd_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
             ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['s'], data, buffer, tags, prefix, args]
           else:
@@ -1744,7 +1745,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMAND UNREGISTER CHANNEL
   
-  def command_unregister_channel(data, buffer, args):
+  def command_unregister_channel(data, buffer, cmd_hash, args):
     global wrecon_channel, wrecon_server, wrecon_channel_key, wrecon_channel_encryption_key
     v_err = False
     if wrecon_channel and wrecon_server:
