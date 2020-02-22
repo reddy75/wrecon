@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.16 - Small fix of call ADVERTISE after RENAME
 # 1.15 - Small fix in HELP - REGISTER
 # 1.14 - Bug fix REMOTE RENAME
 # 1.13 - Bug fixes
@@ -106,8 +107,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.15'
-SCRIPT_TIMESTAMP = '20200222184352CET'
+SCRIPT_VERSION   = '1.16'
+SCRIPT_TIMESTAMP = '20200222193206CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1470,7 +1471,7 @@ UPDATE     UP[DATE] [botid]
     info_message = ['Your bot Name has been changed to \'%s\'' % (newname)]
     f_change_buffer_title()
     f_message(data, buffer, 'RENAME INFO', info_message)
-    command_advertise(data, buffer, '')
+    command_advertise(data, buffer, '', '')
     return weechat.WEECHAT_RC_OK
   
 
