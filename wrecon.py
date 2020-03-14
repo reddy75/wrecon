@@ -29,6 +29,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18 - Small fix of call ADDITIONAL ADVERTISE
+#      - assignment variables fixed
 # 1.17 - Small fix of call ADDITIONAL ADVERTISE
 # 1.16 - Small fix of call ADVERTISE after RENAME
 # 1.15 - Small fix in HELP - REGISTER
@@ -108,8 +110,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.17'
-SCRIPT_TIMESTAMP = '20200314145318CET'
+SCRIPT_VERSION   = '1.18'
+SCRIPT_TIMESTAMP = '20200314212240CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1111,12 +1113,12 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       receive_advertise_error(data, buffer, tags, prefix, args)
     else:
       receive_advertise(data, buffer, tags, prefix, args)
-      xcmd    = ADDITIONAL_ADVERTISE[additional_key][0]
-      xdata   = ADDITIONAL_ADVERTISE[additional_key][1]
-      xbuffer = ADDITIONAL_ADVERTISE[additional_key][2]
-      xtags   = ADDITIONAL_ADVERTISE[additional_key][3]
-      xprefix = ADDITIONAL_ADVERTISE[additional_key][4]
-      xargs   = ADDITIONAL_ADVERTISE[additional_key][5]
+      xcmd, xdata, xbuffer, xtags,  xprefix, xargs  = ADDITIONAL_ADVERTISE[additional_key]
+      # ~ xdata   = ADDITIONAL_ADVERTISE[additional_key][1]
+      # ~ xbuffer = ADDITIONAL_ADVERTISE[additional_key][2]
+      # ~ xtags   = ADDITIONAL_ADVERTISE[additional_key][3]
+      # ~ xprefix = ADDITIONAL_ADVERTISE[additional_key][4]
+      # ~ xargs   = ADDITIONAL_ADVERTISE[additional_key][5]
       command_validate_remote_bot(xdata, xbuffer, xcmd, xtags, xprefix, xargs)
     return weechat.WEECHAT_RC_OK
   
