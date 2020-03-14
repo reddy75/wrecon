@@ -110,8 +110,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18'
-SCRIPT_TIMESTAMP = '20200314212240CET'
+SCRIPT_VERSION   = '1.18.1'
+SCRIPT_TIMESTAMP = '20200314213645CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1914,7 +1914,8 @@ UPDATE     UP[DATE] [botid]
             # Initiate additional advertise of remote bot
             global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP
             weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[1], args[0], args[2], SCRIPT_VERSION, SCRIPT_TIMESTAMP))
-            ADDITIONAL_ADVERTISE[additional_key] = [call_requested_function, data, buffer, tags, prefix, args]
+            xargs = args.split()
+            ADDITIONAL_ADVERTISE[additional_key] = [call_requested_function, data, buffer, tags, prefix, xargs]
           else:
             # In case remote bot has been additionally asked for advertise and was not advertised, then it is error (script on remote site stopped or stuck)
             reply_validation_error(data, buffer, 'PROTOCOL VIOLATION - REMOTE BOT WAS NOT ADVERTISED', args)
