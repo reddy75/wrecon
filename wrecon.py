@@ -29,6 +29,10 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.2 - Small fix of call ADDITIONAL ADVERTISE
+#        - assignment variables fix (another patch)
+# 1.18.1 - Small fix of call ADDITIONAL ADVERTISE
+#        - assignment variables fix (another patch)
 # 1.18 - Small fix of call ADDITIONAL ADVERTISE
 #      - assignment variables fixed
 # 1.17 - Small fix of call ADDITIONAL ADVERTISE
@@ -110,8 +114,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.1'
-SCRIPT_TIMESTAMP = '20200314213645CET'
+SCRIPT_VERSION   = '1.18.2'
+SCRIPT_TIMESTAMP = '20200314214620CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1119,7 +1123,8 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       # ~ xtags   = ADDITIONAL_ADVERTISE[additional_key][3]
       # ~ xprefix = ADDITIONAL_ADVERTISE[additional_key][4]
       # ~ xargs   = ADDITIONAL_ADVERTISE[additional_key][5]
-      command_validate_remote_bot(xdata, xbuffer, xcmd, xtags, xprefix, xargs)
+      xxargs = xargs.split(' ')
+      command_validate_remote_bot(xdata, xbuffer, xcmd, xtags, xprefix, xxargs)
     return weechat.WEECHAT_RC_OK
   
   SCRIPT_BUFFER_CALL[BUFFER_CMD_ADV_EXE] = reply_advertise
@@ -1914,8 +1919,7 @@ UPDATE     UP[DATE] [botid]
             # Initiate additional advertise of remote bot
             global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP
             weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[1], args[0], args[2], SCRIPT_VERSION, SCRIPT_TIMESTAMP))
-            xargs = args.split()
-            ADDITIONAL_ADVERTISE[additional_key] = [call_requested_function, data, buffer, tags, prefix, xargs]
+            ADDITIONAL_ADVERTISE[additional_key] = [call_requested_function, data, buffer, tags, prefix, args]
           else:
             # In case remote bot has been additionally asked for advertise and was not advertised, then it is error (script on remote site stopped or stuck)
             reply_validation_error(data, buffer, 'PROTOCOL VIOLATION - REMOTE BOT WAS NOT ADVERTISED', args)
