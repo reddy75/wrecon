@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.17 - Small fix of call ADDITIONAL ADVERTISE
 # 1.16 - Small fix of call ADVERTISE after RENAME
 # 1.15 - Small fix in HELP - REGISTER
 # 1.14 - Bug fix REMOTE RENAME
@@ -107,8 +108,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.16'
-SCRIPT_TIMESTAMP = '20200222193206CET'
+SCRIPT_VERSION   = '1.17'
+SCRIPT_TIMESTAMP = '20200314145318CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1622,9 +1623,9 @@ UPDATE     UP[DATE] [botid]
           additional_key = '%s%s' % (args[0], cmd_hash)
           if not additional_key in ADDITIONAL_ADVERTISE:
             # Request additional advertise of remote bot
-            global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP, SCRIPT_COMMAND_CALL
-            f_message_simple(data, buffer, 'ARGS : %s' % args)
-            weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[1], args[0], cmd_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
+            global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP, SCRIPT_COMMAND_CALL, WRECON_BOT_ID
+            # ~ f_message_simple(data, buffer, 'ARGS : %s' % args)
+            weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[0], WRECON_BOT_ID, cmd_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
             ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['s'], data, buffer, tags, prefix, args]
           else:
             # In case remote bot has been additionally asked for advertisement and was not advertised, then it is error
