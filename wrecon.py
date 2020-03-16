@@ -29,6 +29,9 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.3 - Small fix of call ADDITIONAL ADVERTISE
+#        - assignment variables fix (another patch)
+#        - Fix ssh call
 # 1.18.2 - Small fix of call ADDITIONAL ADVERTISE
 #        - assignment variables fix (another patch)
 # 1.18.1 - Small fix of call ADDITIONAL ADVERTISE
@@ -114,8 +117,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.2'
-SCRIPT_TIMESTAMP = '20200314214620CET'
+SCRIPT_VERSION   = '1.18.3'
+SCRIPT_TIMESTAMP = '20200316170613CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -827,7 +830,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       if wrecon_auto_advertised == False:
         f_buffer_hook()
         f_autoconnect_channel_mode(wrecon_buffer_channel)
-        command_advertise('', wrecon_buffer_channel, '', '')
+        command_advertise('', wrecon_buffer_channel, '', '', '')
         wrecon_auto_advertised = True
     return weechat.WEECHAT_RC_OK
   
@@ -997,7 +1000,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   #
   # COMMAND ADD REMOTE BOT YOU WILL control
   
-  def command_add_controled_bot(data, buffer, cmd_hash, args):
+  def command_add_controled_bot(data, buffer, NULL, cmd_hash, args):
     global wrecon_remote_bots_control
     v_err       = False
     v_err_topic = 'ADD ERROR'
@@ -1051,7 +1054,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   BUFFER_CMD_ADA_EXE = '%sE-ADA' % (COMMAND_IN_BUFFER)
   BUFFER_CMD_ADA_REP = '%sADA-R' % (COMMAND_IN_BUFFER)
   
-  def command_advertise(data, buffer, cmd_hash, args):
+  def command_advertise(data, buffer, NULL, cmd_hash, args):
     global BUFFER_CMD_EADV, BUFFER_CMD_ADV_REP, wrecon_bot_id, uniq_hash, wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP
     uniq_hash = f_command_counter()
     # PROTOCOL: COMMAND TO_BOTID|HASH FROM_BOTID HASH [DATA]
@@ -1117,14 +1120,13 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       receive_advertise_error(data, buffer, tags, prefix, args)
     else:
       receive_advertise(data, buffer, tags, prefix, args)
-      xcmd, xdata, xbuffer, xtags,  xprefix, xargs  = ADDITIONAL_ADVERTISE[additional_key]
-      # ~ xdata   = ADDITIONAL_ADVERTISE[additional_key][1]
-      # ~ xbuffer = ADDITIONAL_ADVERTISE[additional_key][2]
-      # ~ xtags   = ADDITIONAL_ADVERTISE[additional_key][3]
-      # ~ xprefix = ADDITIONAL_ADVERTISE[additional_key][4]
-      # ~ xargs   = ADDITIONAL_ADVERTISE[additional_key][5]
-      xxargs = xargs.split(' ')
-      command_validate_remote_bot(xdata, xbuffer, xcmd, xtags, xprefix, xxargs)
+      xcmd    = ADDITIONAL_ADVERTISE[additional_key][0]
+      xdata   = ADDITIONAL_ADVERTISE[additional_key][1]
+      xbuffer = ADDITIONAL_ADVERTISE[additional_key][2]
+      xtags   = ADDITIONAL_ADVERTISE[additional_key][3]
+      xprefix = ADDITIONAL_ADVERTISE[additional_key][4]
+      xargs   = ADDITIONAL_ADVERTISE[additional_key][5]
+      command_validate_remote_bot(xdata, xbuffer, xcmd, xtags, xprefix, xargs)
     return weechat.WEECHAT_RC_OK
   
   SCRIPT_BUFFER_CALL[BUFFER_CMD_ADV_EXE] = reply_advertise
@@ -1182,7 +1184,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   #
   # COMMAND GRANT
   
-  def command_grant_bot(data, buffer, cmd_hash, args):
+  def command_grant_bot(data, buffer, NULL, cmd_hash, args):
     global wrecon_remote_bots_granted
     v_err       = False
     v_err_topic = 'GRANT ERROR'
@@ -1284,7 +1286,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMAND LIST
   
-  def command_list_bot(data, buffer, cmd_hash, args):
+  def command_list_bot(data, buffer, NULL, cmd_hash, args):
     global wrecon_remote_bots_control, wrecon_remote_bots_granted, wrecon_remote_bots_advertised
     v_err       = False
     v_err_topic = 'LIST ERROR'
@@ -1387,7 +1389,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMAND REGISTER CHANNEL
   
-  def command_register_channel(data, buffer, cmd_hash, args):
+  def command_register_channel(data, buffer, NULL, cmd_hash, args):
     v_err = False
     if len(args) == 2:
       global wrecon_channel, wrecon_server, wrecon_channel_key, wrecon_channel_encryption_key, wrecon_buffer_channel
@@ -1564,7 +1566,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMAND REVOKE
   
-  def command_revoke(data, buffer, cmd_hash, args):
+  def command_revoke(data, buffer, NULL, cmd_hash, args):
     global wrecon_remote_bots_granted
     v_err       = False
     v_err_topic = 'REVOKE ERROR'
@@ -1611,7 +1613,7 @@ UPDATE     UP[DATE] [botid]
   uniq_hash_cmd_ssh = ''
   SSH_GLOBAL_OUTPUT = []
   
-  def command_ssh(data, buffer, cmd_hash, args):
+  def command_ssh(data, buffer, NULL1, NULL2, cmd_hash, args):
     global wrecon_remote_bots_control
     v_err       = False
     v_err_topic = 'SSH ERROR'
@@ -1757,7 +1759,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMAND UNREGISTER CHANNEL
   
-  def command_unregister_channel(data, buffer, cmd_hash, args):
+  def command_unregister_channel(data, buffer, NULL, cmd_hash, args):
     global wrecon_channel, wrecon_server, wrecon_channel_key, wrecon_channel_encryption_key
     v_err = False
     if wrecon_channel and wrecon_server:
@@ -1810,7 +1812,7 @@ UPDATE     UP[DATE] [botid]
   global BUFFER_CMD_UPD_EXE
   BUFFER_CMD_UPD_EXE = '%sE-UPD' % (COMMAND_IN_BUFFER)
   
-  def command_update(data, buffer, cmd_hash, args):
+  def command_update(data, buffer, xtags, xprefix, cmd_hash, args):
     # Check we want update itself (no arguments are expected)
     v_err       = False
     v_err_topic = 'UPDATE ERROR'
@@ -1842,8 +1844,11 @@ UPDATE     UP[DATE] [botid]
               if not additional_key in ADDITIONAL_ADVERTISE:
                 # Request additional advertise of remote bot
                 global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP, SCRIPT_COMMAND_CALL
+                xargs = args
+                xargs.append(wrecon_bot_id)
+                xargs.append(cmd_hash)
+                ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['up'], data, buffer, '', '', cmd_hash, xargs]
                 weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[0], wrecon_bot_id, cmd_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
-                ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['up'], data, buffer, '', '', args]
               else:
                 # In case remote bot has been additionally asked for advertisement and was not  advertised, then it is error
                 f_message(data, buffer, v_error_topic, ['REMOTE BOT %s WAS NOT ADVERTISED' % (args[0])])
@@ -1918,8 +1923,8 @@ UPDATE     UP[DATE] [botid]
           if not additional_key in ADDITIONAL_ADVERTISE:
             # Initiate additional advertise of remote bot
             global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP
-            weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[1], args[0], args[2], SCRIPT_VERSION, SCRIPT_TIMESTAMP))
             ADDITIONAL_ADVERTISE[additional_key] = [call_requested_function, data, buffer, tags, prefix, args]
+            weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[1], args[0], args[2], SCRIPT_VERSION, SCRIPT_TIMESTAMP))
           else:
             # In case remote bot has been additionally asked for advertise and was not advertised, then it is error (script on remote site stopped or stuck)
             reply_validation_error(data, buffer, 'PROTOCOL VIOLATION - REMOTE BOT WAS NOT ADVERTISED', args)
@@ -2046,7 +2051,7 @@ UPDATE     UP[DATE] [botid]
         else:
           v_datasend = ''
         cmd_hash = f_command_counter()
-        SCRIPT_COMMAND_CALL[v_command](data, buffer, cmd_hash, v_datasend)
+        SCRIPT_COMMAND_CALL[v_command](data, buffer, '', '', cmd_hash, v_datasend)
       else:
         f_message(data, buffer, 'ERROR', ['INVALID COMMAND > "%s"' % (v_command)])
     else:
