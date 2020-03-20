@@ -118,8 +118,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.4'
-SCRIPT_TIMESTAMP = '20200320155616CET'
+SCRIPT_VERSION   = '1.18.5'
+SCRIPT_TIMESTAMP = '20200320160911CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1185,7 +1185,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   #
   # COMMAND GRANT
   
-  def command_grant_bot(data, buffer, NULL, cmd_hash, args):
+  def command_grant_bot(data, buffer, NULL1, NULL2, cmd_hash, args):
     global wrecon_remote_bots_granted
     v_err       = False
     v_err_topic = 'GRANT ERROR'
@@ -1287,7 +1287,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMAND LIST
   
-  def command_list_bot(data, buffer, NULL, cmd_hash, args):
+  def command_list_bot(data, buffer, NULL1, NULL2, cmd_hash, args):
     global wrecon_remote_bots_control, wrecon_remote_bots_granted, wrecon_remote_bots_advertised
     v_err       = False
     v_err_topic = 'LIST ERROR'
@@ -1390,7 +1390,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMAND REGISTER CHANNEL
   
-  def command_register_channel(data, buffer, NULL, cmd_hash, args):
+  def command_register_channel(data, buffer, NULL1, NULL2, cmd_hash, args):
     v_err = False
     if len(args) == 2:
       global wrecon_channel, wrecon_server, wrecon_channel_key, wrecon_channel_encryption_key, wrecon_buffer_channel
