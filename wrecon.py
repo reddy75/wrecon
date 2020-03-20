@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.4 - Fix command ADVERTISE
 # 1.18.3 - Small fix of call ADDITIONAL ADVERTISE
 #        - assignment variables fix (another patch)
 #        - Fix ssh call
@@ -117,8 +118,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.3'
-SCRIPT_TIMESTAMP = '20200316170613CET'
+SCRIPT_VERSION   = '1.18.4'
+SCRIPT_TIMESTAMP = '20200320155616CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -830,7 +831,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       if wrecon_auto_advertised == False:
         f_buffer_hook()
         f_autoconnect_channel_mode(wrecon_buffer_channel)
-        command_advertise('', wrecon_buffer_channel, '', '', '')
+        command_advertise('', wrecon_buffer_channel, '', '', '', '')
         wrecon_auto_advertised = True
     return weechat.WEECHAT_RC_OK
   
@@ -1000,7 +1001,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   #
   # COMMAND ADD REMOTE BOT YOU WILL control
   
-  def command_add_controled_bot(data, buffer, NULL, cmd_hash, args):
+  def command_add_controled_bot(data, buffer, NULL1, NULL2, cmd_hash, args):
     global wrecon_remote_bots_control
     v_err       = False
     v_err_topic = 'ADD ERROR'
@@ -1054,7 +1055,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   BUFFER_CMD_ADA_EXE = '%sE-ADA' % (COMMAND_IN_BUFFER)
   BUFFER_CMD_ADA_REP = '%sADA-R' % (COMMAND_IN_BUFFER)
   
-  def command_advertise(data, buffer, NULL, cmd_hash, args):
+  def command_advertise(data, buffer, NULL1, NULL2, cmd_hash, args):
     global BUFFER_CMD_EADV, BUFFER_CMD_ADV_REP, wrecon_bot_id, uniq_hash, wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP
     uniq_hash = f_command_counter()
     # PROTOCOL: COMMAND TO_BOTID|HASH FROM_BOTID HASH [DATA]
@@ -1143,7 +1144,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   #
   # COMMAND DELETE REMOTE BOT FROM control
   
-  def command_del_control_bot(data, buffer, cmd_hash, args):
+  def command_del_control_bot(data, buffer, NULL1, NULL2, cmd_hash, args):
     global wrecon_remote_bots_control
     v_err       = False
     v_err_topic = 'DELETE ERROR'
@@ -1250,7 +1251,7 @@ UPDATE     UP[DATE] [botid]
 <<<BriefHelp
   '''
   
-  def command_help(data, buffer, cmd_hash, args):
+  def command_help(data, buffer, NULL1, NULL2, cmd_hash, args):
     global SCRIPT_SELF_PATH, HELP_TAG_START, HELP_TAG_END
     SHOW_HELP   = False
     SCRIPT_FILE = open(SCRIPT_SELF_PATH, 'r')
@@ -1353,7 +1354,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMANDS ME
   
-  def command_me(data, buffer, cmd_hash, args):
+  def command_me(data, buffer, NULL1, NULL2, cmd_hash, args):
     global wrecon_server, wrecon_channel, wrecon_channel_key, wrecon_channel_encryption_key, wrecon_bot_name, wrecon_bot_id, wrecon_bot_key, SCRIPT_VERSION, SCRIPT_TIMESTAMP
     info_message     = ['Bot Name  : %s' % (wrecon_bot_name)]
     info_message.append('Bot ID    : %s' % (wrecon_bot_id))
@@ -1485,7 +1486,7 @@ UPDATE     UP[DATE] [botid]
     return weechat.WEECHAT_RC_OK
   
 
-  def command_rename(data, buffer, cmd_hash, args):
+  def command_rename(data, buffer, NULL1, NULL2, cmd_hash, args):
     v_err       = False
     v_err_topic = 'RENAME ERROR'
     v_topic     = 'RENAME INFO'
@@ -1566,7 +1567,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMAND REVOKE
   
-  def command_revoke(data, buffer, NULL, cmd_hash, args):
+  def command_revoke(data, buffer, NULL1, NULL2, cmd_hash, args):
     global wrecon_remote_bots_granted
     v_err       = False
     v_err_topic = 'REVOKE ERROR'
@@ -1759,7 +1760,7 @@ UPDATE     UP[DATE] [botid]
   #
   # COMMAND UNREGISTER CHANNEL
   
-  def command_unregister_channel(data, buffer, NULL, cmd_hash, args):
+  def command_unregister_channel(data, buffer, NULL1, NULL2, cmd_hash, args):
     global wrecon_channel, wrecon_server, wrecon_channel_key, wrecon_channel_encryption_key
     v_err = False
     if wrecon_channel and wrecon_server:
