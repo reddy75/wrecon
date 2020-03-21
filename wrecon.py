@@ -29,6 +29,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.6 - Fixed bug of variables (lower cases and UPPER CASEs)
+# 1.18.5 - Fixed list command (correction of command arguments)
 # 1.18.4 - Fix command ADVERTISE
 # 1.18.3 - Small fix of call ADDITIONAL ADVERTISE
 #        - assignment variables fix (another patch)
@@ -118,8 +120,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.5'
-SCRIPT_TIMESTAMP = '20200320160911CET'
+SCRIPT_VERSION   = '1.18.6'
+SCRIPT_TIMESTAMP = '20200321185520CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -306,17 +308,17 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   # FUNCTION FOR COUNTING COMMANDS
   
   def f_command_counter():
-    global wrecon_command_counter
-    wrecon_command_counter = wrecon_command_counter + 1
-    if wrecon_command_counter > 999:
-      wrecon_command_counter = 0
-    return '%03d-%s' % (wrecon_command_counter, f_random_generator(3))
+    global WRECON_COMMAND_COUNTER
+    WRECON_COMMAND_COUNTER = WRECON_COMMAND_COUNTER + 1
+    if WRECON_COMMAND_COUNTER > 999:
+      WRECON_COMMAND_COUNTER = 0
+    return '%03d-%s' % (WRECON_COMMAND_COUNTER, f_random_generator(3))
   
   #####
   #
   # FUNCTION FOR CHECK MY NICK IS OP AND CHANNEL CAN BE UPDATE IF NECESSARY
   def f_change_modeop(data, buffer, servername, channelname):
-    global wrecon_channel_key
+    global WRECON_CHANNEL_KEY
     result      = 0
     resultnick  = 0
     resultchan  = 0
@@ -338,7 +340,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       my_channel_key  = weechat.infolist_string(infolist, 'key')
       my_channel_mode = weechat.infolist_string(infolist, 'modes')
       if my_channel_name == channelname:
-        if not wrecon_channel_key in my_channel_mode:
+        if not WRECON_CHANNEL_KEY in my_channel_mode:
           resultchan = 1
         if not 'k' in my_channel_mode:
           resultmode = 1
@@ -347,7 +349,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
     
     if resultnick == 1:
       if resultmode == 1 or resultchan == 1:
-        weechat.command(buffer, '/mode %s -n+sk %s' % (channelname, wrecon_channel_key))
+        weechat.command(buffer, '/mode %s -n+sk %s' % (channelname, WRECON_CHANNEL_KEY))
     return result
   
   #####
@@ -617,8 +619,8 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   # with header
   #
   def f_message(data, buffer, message_tag, message):
-    global wrecon_bot_name, wrecon_bot_id
-    f_message_simple(data, buffer, '--- %s (%s %s) ---' % (message_tag, wrecon_bot_name, wrecon_bot_id))
+    global WRECON_BOT_NAME, WRECON_BOT_ID
+    f_message_simple(data, buffer, '--- %s (%s %s) ---' % (message_tag, WRECON_BOT_NAME, WRECON_BOT_ID))
     for my_index in range(0, len(message), 1):
       f_message_simple(data, buffer, '%s' % (message[my_index]))
     return weechat.WEECHAT_RC_OK
@@ -631,21 +633,21 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   # FUNCTION GET BUFFERS AND BUFFER OF REGISTERED CHANNEL
   
   def f_get_buffers():
-    wrecon_buffers  = {}
+    WRECON_BUFFERS  = {}
     infolist_buffer = weechat.infolist_get('buffer', '', '')
     while weechat.infolist_next(infolist_buffer):
       buffer_pointer              = weechat.infolist_pointer(infolist_buffer, 'pointer')
       buffer_name                 = weechat.buffer_get_string(buffer_pointer, 'localvar_name')
-      wrecon_buffers[buffer_name] = buffer_pointer
+      WRECON_BUFFERS[buffer_name] = buffer_pointer
     weechat.infolist_free(infolist_buffer)
-    return wrecon_buffers
+    return WRECON_BUFFERS
   
   def f_get_buffer_channel():
-    global wrecon_server, wrecon_channel
-    wrecon_buffer_name = '%s.%s' % (wrecon_server, wrecon_channel)
-    wrecon_buffers     = f_get_buffers()
-    if wrecon_buffer_name in wrecon_buffers:
-      return wrecon_buffers[wrecon_buffer_name]
+    global WRECON_SERVER, WRECON_CHANNEL
+    wrecon_buffer_name = '%s.%s' % (WRECON_SERVER, WRECON_CHANNEL)
+    WRECON_BUFFERS     = f_get_buffers()
+    if wrecon_buffer_name in WRECON_BUFFERS:
+      return WRECON_BUFFERS[wrecon_buffer_name]
     else:
       return ''
   
@@ -658,9 +660,9 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   
   # FUNCTION ADD CHANNEL TO AUTOJOIN
   
-  def f_setup_autojoin_add(buffer, wrecon_server, new_channel):
+  def f_setup_autojoin_add(buffer, WRECON_SERVER, new_channel):
     save_setup              = False
-    wrecon_channel_autojoin = weechat.string_eval_expression("${irc.server.%s.autojoin}" % (wrecon_server), {}, {}, {})
+    wrecon_channel_autojoin = weechat.string_eval_expression("${irc.server.%s.autojoin}" % (WRECON_SERVER), {}, {}, {})
     wrecon_chan_key         = '${sec.data.wrecon_channel_key}'
     my_channels             = wrecon_channel_autojoin.split(' ')[0].split(',')
     my_channels_keys        = wrecon_channel_autojoin.split(' ')[1].split(',')
@@ -683,9 +685,9 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   
   # FUNCTION DEL CHANNEL FROM AUTOJOIN
   
-  def f_setup_autojoin_del(buffer, wrecon_server, del_channel):
+  def f_setup_autojoin_del(buffer, WRECON_SERVER, del_channel):
     save_setup = False
-    wrecon_channel_autojoin = weechat.string_eval_expression("${irc.server.%s.autojoin}" % (wrecon_server), {}, {}, {})
+    wrecon_channel_autojoin = weechat.string_eval_expression("${irc.server.%s.autojoin}" % (WRECON_SERVER), {}, {}, {})
     wrecon_chan_key         = '${sec.data.wrecon_channel_key}'
     my_channels             = wrecon_channel_autojoin.split(' ')[0].split(',')
     my_channels_keys        = wrecon_channel_autojoin.split(' ')[1].split(',')
@@ -706,7 +708,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
     export_channels = ','.join(map(str, my_channels))
     export_keys     = ','.join(map(str, my_channels_keys))
     export_data     = '%s %s' % (export_channels, export_keys)
-    weechat.command(buffer, '/set irc.server.%s.autojoin %s' % (wrecon_server, export_data))
+    weechat.command(buffer, '/set irc.server.%s.autojoin %s' % (WRECON_SERVER, export_data))
     return
   
   #
@@ -719,17 +721,17 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   # 2) test we are joined to registered channel - (join automatically)
   
   def f_autoconnect():
-    global wrecon_server, wrecon_channel
-    if wrecon_server and wrecon_channel:
+    global WRECON_SERVER, WRECON_CHANNEL
+    if WRECON_SERVER and WRECON_CHANNEL:
       if f_get_status_server() == 0:
         f_autoconnect_server()
       else:
         v_buffer_server = f_get_buffers()
-        f_autoconnect_channel(v_buffer_server['server.%s' % (wrecon_server)])
+        f_autoconnect_channel(v_buffer_server['server.%s' % (WRECON_SERVER)])
     return weechat.WEECHAT_RC_OK
   
   def f_get_status_server():
-    global wrecon_server
+    global WRECON_SERVER
     infolist_server = weechat.infolist_get('irc_server', '', '')
     server_status   = {}
     while  weechat.infolist_next(infolist_server):
@@ -738,14 +740,14 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       server_status[server_name] = server_stat
     weechat.infolist_free(infolist_server)
     
-    if wrecon_server in server_status:
-      return server_status[wrecon_server]
+    if WRECON_SERVER in server_status:
+      return server_status[WRECON_SERVER]
     else:
       return '0'
   
   def f_get_status_channel():
-    global wrecon_server, wrecon_channel
-    infolist_channel  = weechat.infolist_get('irc_channel', '', wrecon_server)
+    global WRECON_SERVER, WRECON_CHANNEL
+    infolist_channel  = weechat.infolist_get('irc_channel', '', WRECON_SERVER)
     channel_status    = {}
     do_record         = False
     while weechat.infolist_next(infolist_channel):
@@ -764,9 +766,9 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
           channel_field_value = weechat.infolist_time(infolist_channel, channel_field_name)
         else:
           channel_field_value = 'N/A'
-        if channel_field_name == 'buffer_short_name' and channel_field_value == wrecon_channel:
+        if channel_field_name == 'buffer_short_name' and channel_field_value == WRECON_CHANNEL:
           do_record = True
-        elif channel_field_name == 'buffer_short_name' and channel_field_value != wrecon_channel:
+        elif channel_field_name == 'buffer_short_name' and channel_field_value != WRECON_CHANNEL:
           do_record = False
         if do_record == True:
           channel_status[channel_field_name] = channel_field_value
@@ -778,7 +780,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       return 0
   
   def f_get_server_setup():
-    global wrecon_server
+    global WRECON_SERVER
     infolist_server = weechat.infolist_get('irc_server', '', '')
     server_status   = {}
     while weechat.infolist_next(infolist_server):
@@ -797,47 +799,47 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
           server_field_value = weechat.infolist_time(infolist_server, server_field_name)
         else:
           server_field_value = 'N/A'
-        f_message_simple('', '', 'SETUP - %s - %s : %s' % (wrecon_server, server_field_name, server_field_value))
+        f_message_simple('', '', 'SETUP - %s - %s : %s' % (WRECON_SERVER, server_field_name, server_field_value))
     weechat.infolist_free(infolist_server)
     return server_status
     
   def f_autoconnect_server():
-    global wrecon_server
-    weechat.command('', '/connect %s' % (wrecon_server))
-    wrecon_hook_connect = weechat.hook_timer(1*1000, 0, 20, 'f_autoconnect_server_status', '')
+    global WRECON_SERVER
+    weechat.command('', '/connect %s' % (WRECON_SERVER))
+    WRECON_HOOK_CONNECT = weechat.hook_timer(1*1000, 0, 20, 'f_autoconnect_server_status', '')
     return weechat.WEECHAT_RC_OK
   
   def f_autoconnect_server_status(arg1, arg2):
-    global wrecon_server
+    global WRECON_SERVER
     if f_get_status_server() == 1:
-      weechat.unhook(wrecon_hook_connect)
-      wrecon_buffers = f_get_buffers()
-      f_autoconnect_channel(wrecon_buffers['server.%s' % (wrecon_server)])
+      weechat.unhook(WRECON_HOOK_CONNECT)
+      WRECON_BUFFERS = f_get_buffers()
+      f_autoconnect_channel(WRECON_BUFFERS['server.%s' % (WRECON_SERVER)])
     return weechat.WEECHAT_RC_OK
   
   def f_autoconnect_channel(buffer):
-    global wrecon_channel, wrecon_channel_key, wrecon_hook_join, wrecon_server 
-    weechat.command(buffer, '/join %s %s' % (wrecon_channel, wrecon_channel_key))
-    wrecon_hook_join = weechat.hook_timer(1*1000, 0, 5, 'f_autoconnect_channel_status', '')
+    global WRECON_CHANNEL, WRECON_CHANNEL_KEY, WRECON_HOOK_JOIN, WRECON_SERVER 
+    weechat.command(buffer, '/join %s %s' % (WRECON_CHANNEL, WRECON_CHANNEL_KEY))
+    WRECON_HOOK_JOIN = weechat.hook_timer(1*1000, 0, 5, 'f_autoconnect_channel_status', '')
   
   def f_autoconnect_channel_status(arg1, arg2):
-    global wrecon_hook_join, wrecon_auto_advertised, wrecon_hook_buffer, wrecon_buffer_channel, SCRIPT_CALLBACK_BUFFER
+    global WRECON_HOOK_JOIN, WRECON_AUTO_ADVERTISED, WRECON_HOOK_BUFFER, WRECON_BUFFER_CHANNEL, SCRIPT_CALLBACK_BUFFER
     
     if arg2 == '0':
-      weechat.unhook(wrecon_hook_join)
+      weechat.unhook(WRECON_HOOK_JOIN)
     
     if f_get_status_channel() > 0:
-      weechat.unhook(wrecon_hook_join)
-      if wrecon_auto_advertised == False:
+      weechat.unhook(WRECON_HOOK_JOIN)
+      if WRECON_AUTO_ADVERTISED == False:
         f_buffer_hook()
-        f_autoconnect_channel_mode(wrecon_buffer_channel)
-        command_advertise('', wrecon_buffer_channel, '', '', '', '')
-        wrecon_auto_advertised = True
+        f_autoconnect_channel_mode(WRECON_BUFFER_CHANNEL)
+        command_advertise('', WRECON_BUFFER_CHANNEL, '', '', '', '')
+        WRECON_AUTO_ADVERTISED = True
     return weechat.WEECHAT_RC_OK
   
   def f_autoconnect_channel_mode(buffer):
-    global wrecon_channel, wrecon_channel_key, wrecon_server
-    f_change_modeop('', buffer, wrecon_server, wrecon_channel)
+    global WRECON_CHANNEL, WRECON_CHANNEL_KEY, WRECON_SERVER
+    f_change_modeop('', buffer, WRECON_SERVER, WRECON_CHANNEL)
     f_change_buffer_title()
     return weechat.WEECHAT_RC_OK
   
@@ -863,8 +865,8 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   # FUNCTION CHANGE BUFFER TITLE
   
   def f_change_buffer_title():
-    global wrecon_server, wrecon_channel, wrecon_bot_name, wrecon_bot_id, wrecon_buffer_channel
-    weechat.buffer_set(wrecon_buffer_channel, 'title', 'Weechat Remote control - %s - %s - %s [%s]' % (wrecon_server, wrecon_channel, wrecon_bot_name, wrecon_bot_id))
+    global WRECON_SERVER, WRECON_CHANNEL, WRECON_BOT_NAME, WRECON_BOT_ID, WRECON_BUFFER_CHANNEL
+    weechat.buffer_set(WRECON_BUFFER_CHANNEL, 'title', 'Weechat Remote control - %s - %s - %s [%s]' % (WRECON_SERVER, WRECON_CHANNEL, WRECON_BOT_NAME, WRECON_BOT_ID))
     return weechat.WEECHAT_RC_OK
   
   #
@@ -874,55 +876,55 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   #
   # INITIALIZATION OF BASIC VARIABLES FOR BOT
   
-  global wrecon_default_botnames, wrecon_bot_name, wrecon_bot_id, wrecon_bot_key
-  wrecon_default_botnames = ['anee', 'anet', 'ann', 'annee', 'annet', 'bob', 'brad', 'don', 'fred', 'freddie', 'john', 'mia', 'moon', 'pooh', 'red', 'ron', 'ronnie', 'shark', 'ted', 'teddy', 'zed', 'zoe', 'zombie']
-  wrecon_bot_name         = weechat.string_eval_expression("${sec.data.wrecon_bot_name}",{},{},{})
-  wrecon_bot_id           = weechat.string_eval_expression("${sec.data.wrecon_bot_id}",{},{},{})
-  wrecon_bot_key          = weechat.string_eval_expression("${sec.data.wrecon_bot_key}",{},{},{})
+  global WRECON_DEFAULT_BOTNAMES, WRECON_BOT_NAME, WRECON_BOT_ID, WRECON_BOT_KEY
+  WRECON_DEFAULT_BOTNAMES = ['anee', 'anet', 'ann', 'annee', 'annet', 'bob', 'brad', 'don', 'fred', 'freddie', 'john', 'mia', 'moon', 'pooh', 'red', 'ron', 'ronnie', 'shark', 'ted', 'teddy', 'zed', 'zoe', 'zombie']
+  WRECON_BOT_NAME         = weechat.string_eval_expression("${sec.data.wrecon_bot_name}",{},{},{})
+  WRECON_BOT_ID           = weechat.string_eval_expression("${sec.data.wrecon_bot_id}",{},{},{})
+  WRECON_BOT_KEY          = weechat.string_eval_expression("${sec.data.wrecon_bot_key}",{},{},{})
   #
   # Choice default BOT NAME if not exist and save it
   #
-  if not wrecon_bot_name:
-    wrecon_bot_name = random.choice(wrecon_default_botnames)
-    weechat.command('','/secure set wrecon_bot_name %s' % (wrecon_bot_name))
+  if not WRECON_BOT_NAME:
+    WRECON_BOT_NAME = random.choice(WRECON_DEFAULT_BOTNAMES)
+    weechat.command('','/secure set WRECON_BOT_NAME %s' % (WRECON_BOT_NAME))
   #
   #  Generate BOT ID if not exit and save it
   #
-  if not wrecon_bot_id:
-    wrecon_bot_id = f_random_generator(16)
-    weechat.command('','/secure set wrecon_bot_id %s' % (wrecon_bot_id))
+  if not WRECON_BOT_ID:
+    WRECON_BOT_ID = f_random_generator(16)
+    weechat.command('','/secure set WRECON_BOT_ID %s' % (WRECON_BOT_ID))
   #
   # Generate BOT KEY if not exist and save it
   #
-  if not wrecon_bot_key:
-    wrecon_bot_key = f_random_generator(64)
-    weechat.command('','/secure set wrecon_bot_key %s' % (wrecon_bot_key))
+  if not WRECON_BOT_KEY:
+    WRECON_BOT_KEY = f_random_generator(64)
+    weechat.command('','/secure set WRECON_BOT_KEY %s' % (WRECON_BOT_KEY))
   
   #
   #
   ##### BOT INITIALIZATION IS DONE
   
   # ~ mytext      = 'a toto je test'
-  # ~ mymessage   = f_encrypt_string(mytext, wrecon_bot_key)
+  # ~ mymessage   = f_encrypt_string(mytext, WRECON_BOT_KEY)
   # ~ print('TEST : %s' % (mymessage))
   
-  # ~ mymessage2  = f_decrypt_string(mymessage, wrecon_bot_key)
+  # ~ mymessage2  = f_decrypt_string(mymessage, WRECON_BOT_KEY)
   # ~ print('TEST : %s' % (mymessage2))
   
   #####
   #
   # INITIALIZATION OF BASIC VARIABLES FOR SERVER AND CHANNEL
   
-  global wrecon_server, wrecon_channel, wrecon_channel_key, wrecon_channel_encryption_key, wrecon_buffers, wrecon_buffer_channel, wrecon_command_counter, wrecon_auto_advertised, wrecon_buffer_hooked
-  wrecon_server                 = weechat.string_eval_expression("${sec.data.wrecon_server}",{},{},{})
-  wrecon_channel                = weechat.string_eval_expression("${sec.data.wrecon_channel}",{},{},{})
-  wrecon_channel_key            = weechat.string_eval_expression("${sec.data.wrecon_channel_key}",{},{},{})
-  wrecon_channel_encryption_key = weechat.string_eval_expression("${sec.data.wrecon_channel_encryption_key}",{},{},{})
-  wrecon_buffers                = {}
-  wrecon_buffer_channel         = ''
-  wrecon_command_counter        = 0
-  wrecon_auto_advertised        = False
-  wrecon_buffer_hooked          = False
+  global WRECON_SERVER, WRECON_CHANNEL, WRECON_CHANNEL_KEY, WRECON_CHANNEL_ENCRYPTION_KEY, WRECON_BUFFERS, WRECON_BUFFER_CHANNEL, WRECON_COMMAND_COUNTER, WRECON_AUTO_ADVERTISED, WRECON_BUFFER_HOOKED
+  WRECON_SERVER                 = weechat.string_eval_expression("${sec.data.wrecon_server}",{},{},{})
+  WRECON_CHANNEL                = weechat.string_eval_expression("${sec.data.wrecon_channel}",{},{},{})
+  WRECON_CHANNEL_KEY            = weechat.string_eval_expression("${sec.data.wrecon_channel_key}",{},{},{})
+  WRECON_CHANNEL_ENCRYPTION_KEY = weechat.string_eval_expression("${sec.data.wrecon_channel_encryption_key}",{},{},{})
+  WRECON_BUFFERS                = {}
+  WRECON_BUFFER_CHANNEL         = ''
+  WRECON_COMMAND_COUNTER        = 0
+  WRECON_AUTO_ADVERTISED        = False
+  WRECON_BUFFER_HOOKED          = False
   
   #####
   #
@@ -942,21 +944,21 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   #              have actual state
   #              table contain BOT IDs and BOT NAMEs only
   
-  global wrecon_remote_bots_control, wrecon_remote_bots_granted, wrecon_remote_bots_verified, wrecon_remote_bots_advertised
-  wrecon_remote_bots_control   = weechat.string_eval_expression("${sec.data.wrecon_remote_bots_control}",{},{},{})
-  wrecon_remote_bots_granted    = weechat.string_eval_expression("${sec.data.wrecon_remote_bots_granted}",{},{},{})
-  wrecon_remote_bots_verified   = {}
-  wrecon_remote_bots_advertised = {}
+  global WRECON_REMOTE_BOTS_CONTROL, WRECON_REMOTE_BOTS_GRANTED, WRECON_REMOTE_BOTS_VERIFIED, WRECON_REMOTE_BOTS_ADVERTISED
+  WRECON_REMOTE_BOTS_CONTROL    = weechat.string_eval_expression("${sec.data.wrecon_remote_bots_control}",{},{},{})
+  WRECON_REMOTE_BOTS_GRANTED    = weechat.string_eval_expression("${sec.data.wrecon_remote_bots_granted}",{},{},{})
+  WRECON_REMOTE_BOTS_VERIFIED   = {}
+  WRECON_REMOTE_BOTS_ADVERTISED = {}
   
-  if wrecon_remote_bots_control:
-    wrecon_remote_bots_control = ast.literal_eval(wrecon_remote_bots_control)
+  if WRECON_REMOTE_BOTS_CONTROL:
+    WRECON_REMOTE_BOTS_CONTROL = ast.literal_eval(WRECON_REMOTE_BOTS_CONTROL)
   else:
-    wrecon_remote_bots_control = {}
+    WRECON_REMOTE_BOTS_CONTROL = {}
   
-  if wrecon_remote_bots_granted:
-    wrecon_remote_bots_granted = ast.literal_eval(wrecon_remote_bots_granted)
+  if WRECON_REMOTE_BOTS_GRANTED:
+    WRECON_REMOTE_BOTS_GRANTED = ast.literal_eval(WRECON_REMOTE_BOTS_GRANTED)
   else:
-    wrecon_remote_bots_granted = {}
+    WRECON_REMOTE_BOTS_GRANTED = {}
   
   #####
   #
@@ -985,12 +987,12 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   #
   # INITIALIZE HOOK VARIABLES FOR WHOLE SCRIPT
   
-  global wrecon_hook_command, wrecon_hook_connect, wrecon_hook_join, wrecon_hook_buffer, wrecon_hook_local_commands
-  wrecon_hook_command        = ''
-  wrecon_hook_connect        = ''
-  wrecon_hook_join           = ''
-  wrecon_hook_buffer         = ''
-  wrecon_hook_local_commands = ''
+  global WRECON_HOOK_COMMAND, WRECON_HOOK_CONNECT, WRECON_HOOK_JOIN, WRECON_HOOK_BUFFER, WRECON_HOOK_LOCAL_COMMAND
+  WRECON_HOOK_COMMAND        = ''
+  WRECON_HOOK_CONNECT        = ''
+  WRECON_HOOK_JOIN           = ''
+  WRECON_HOOK_BUFFER         = ''
+  WRECON_HOOK_LOCAL_COMMAND = ''
 
 
   #####
@@ -1002,7 +1004,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   # COMMAND ADD REMOTE BOT YOU WILL control
   
   def command_add_controled_bot(data, buffer, NULL1, NULL2, cmd_hash, args):
-    global wrecon_remote_bots_control
+    global WRECON_REMOTE_BOTS_CONTROL
     v_err       = False
     v_err_topic = 'ADD ERROR'
     if len(args) >= 2:
@@ -1014,11 +1016,11 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
         new_remote_bot_note = ' '.join(map(str, args))
       else:
         new_remote_bot_note = ''
-      if new_remote_bot_id in wrecon_remote_bots_control:
+      if new_remote_bot_id in WRECON_REMOTE_BOTS_CONTROL:
         f_message(data, buffer, v_err_topic, ['ALREADY ADDED. First DEL, then ADD.'])
       else:
-        wrecon_remote_bots_control[new_remote_bot_id] = [new_remote_bot_key, new_remote_bot_note]
-        weechat.command(buffer, '/secure set wrecon_remote_bots_control %s' % (wrecon_remote_bots_control))
+        WRECON_REMOTE_BOTS_CONTROL[new_remote_bot_id] = [new_remote_bot_key, new_remote_bot_note]
+        weechat.command(buffer, '/secure set WRECON_REMOTE_BOTS_CONTROL %s' % (WRECON_REMOTE_BOTS_CONTROL))
         f_message_simple(data, buffer, 'BOT SUCCESSFULLY ADDED')
     else:
       v_err = True
@@ -1036,7 +1038,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   Opposite of command ADD is command DEL.
     /wrecon ADD %s %s
     /wrecon ADD %s %s %s
-    ''' % (f_random_generator(16), f_random_generator(64), f_random_generator(16), f_random_generator(64), random.choice(wrecon_default_botnames))
+    ''' % (f_random_generator(16), f_random_generator(64), f_random_generator(16), f_random_generator(64), random.choice(WRECON_DEFAULT_BOTNAMES))
   SCRIPT_COMPLETION          = SCRIPT_COMPLETION + ' || ADD'
   SCRIPT_COMMAND_CALL['add'] = command_add_controled_bot
   
@@ -1056,14 +1058,14 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   BUFFER_CMD_ADA_REP = '%sADA-R' % (COMMAND_IN_BUFFER)
   
   def command_advertise(data, buffer, NULL1, NULL2, cmd_hash, args):
-    global BUFFER_CMD_EADV, BUFFER_CMD_ADV_REP, wrecon_bot_id, uniq_hash, wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP
+    global BUFFER_CMD_EADV, BUFFER_CMD_ADV_REP, WRECON_BOT_ID, uniq_hash, WRECON_BOT_NAME, SCRIPT_VERSION, SCRIPT_TIMESTAMP
     uniq_hash = f_command_counter()
     # PROTOCOL: COMMAND TO_BOTID|HASH FROM_BOTID HASH [DATA]
     
-    global wrecon_server, wrecon_channel
-    f_change_modeop(data, buffer, wrecon_server, wrecon_channel)
+    global WRECON_SERVER, WRECON_CHANNEL
+    f_change_modeop(data, buffer, WRECON_SERVER, WRECON_CHANNEL)
     
-    weechat.command(buffer, '%s %s %s %s v%s %s' % (BUFFER_CMD_ADV_EXE, uniq_hash, wrecon_bot_id, uniq_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
+    weechat.command(buffer, '%s %s %s %s v%s %s' % (BUFFER_CMD_ADV_EXE, uniq_hash, WRECON_BOT_ID, uniq_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
     return weechat.WEECHAT_RC_OK
   
   SCRIPT_ARGS                      = SCRIPT_ARGS + ' | [ADV[ERTISE]]'
@@ -1078,40 +1080,40 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   SCRIPT_COMMAND_CALL['advertise'] = command_advertise
   
   def reply_advertise(data, buffer, tags, prefix, args):
-    global BUFFER_CMD_ADV_REP, wrecon_bot_id, wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP
+    global BUFFER_CMD_ADV_REP, WRECON_BOT_ID, WRECON_BOT_NAME, SCRIPT_VERSION, SCRIPT_TIMESTAMP
     # PROTOCOL: COMMAND TO_BOTID|HASH FROM_BOTID HASH [DATA]
     v_check_is_hash       = args[0]
     v_remote_bot_id       = args[1]
     v_remote_bot_hash_cmd = args[2]
     if v_check_is_hash == v_remote_bot_hash_cmd:
-      weechat.command(buffer, '%s %s %s %s %s [v%s %s]' % (BUFFER_CMD_ADV_REP, v_remote_bot_id, wrecon_bot_id, v_remote_bot_hash_cmd, wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
+      weechat.command(buffer, '%s %s %s %s %s [v%s %s]' % (BUFFER_CMD_ADV_REP, v_remote_bot_id, WRECON_BOT_ID, v_remote_bot_hash_cmd, WRECON_BOT_NAME, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
     else:
       global BUFFER_CMD_ADV_ERR
-      weechat.command(buffer, '%s %s %s %s [v%s %s] ERROR - PROTOCOL VIOLATION' % (BUFFER_CMD_ADV_ERR, v_remote_bot_id, wrecon_bot_id, v_remote_bot_hash_cmd, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
+      weechat.command(buffer, '%s %s %s %s [v%s %s] ERROR - PROTOCOL VIOLATION' % (BUFFER_CMD_ADV_ERR, v_remote_bot_id, WRECON_BOT_ID, v_remote_bot_hash_cmd, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
     return weechat.WEECHAT_RC_OK
   
   def receive_advertise(data, buffer, tags, prefix, args):
-    global wrecon_remote_bots_advertised
+    global WRECON_REMOTE_BOTS_ADVERTISED
     # PROTOCOL: COMMAND TO_BOTID|HASH FROM_BOTID HASH [DATA]
     v_remote_bot_id   = args[1]
     v_bot_hash_cmd    = args[2]
     v_remote_bot_name = f_get_name(1, args)
     v_remote_bot_data = '%s|%s' % (v_remote_bot_name, f_get_nick_info(tags, prefix))
-    wrecon_remote_bots_advertised[v_remote_bot_id] = v_remote_bot_data
+    WRECON_REMOTE_BOTS_ADVERTISED[v_remote_bot_id] = v_remote_bot_data
     f_message_simple(data, buffer, 'REMOTE BOT REGISTERED : %s (%s)' % (v_remote_bot_id, v_remote_bot_name))
     return weechat.WEECHAT_RC_OK
   
   def receive_advertise_error(data, buffer, tags, prefix, args):
-    global wrecon_remote_bots_advertised
-    if args[1] in wrecon_remote_bots_advertised:
-      del wrecon_remote_bots_advertised[args[1]]
+    global WRECON_REMOTE_BOTS_ADVERTISED
+    if args[1] in WRECON_REMOTE_BOTS_ADVERTISED:
+      del WRECON_REMOTE_BOTS_ADVERTISED[args[1]]
     f_message_simple(data, buffer, 'REMOTE BOT UNREGISTERED : %s' % (args[1]))
     return weechat.WEECHAT_RC_OK
   
   def reply_advertise_additionally(data, buffer, tags, prefix, args):
-    global BUFFER_CMD_ADA_REP, wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP
+    global BUFFER_CMD_ADA_REP, WRECON_BOT_NAME, SCRIPT_VERSION, SCRIPT_TIMESTAMP
     f_message_simple(data, buffer, 'RECEIVED ADDITIONAL ADVERTISE from %s' % (args[1]))
-    weechat.command(buffer, '%s %s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_REP, args[1], args[0], args[2], wrecon_bot_name, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
+    weechat.command(buffer, '%s %s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_REP, args[1], args[0], args[2], WRECON_BOT_NAME, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
     return weechat.WEECHAT_RC_OK
   
   def receive_advertise_additionally(data, buffer, tags, prefix, args):
@@ -1145,14 +1147,14 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   # COMMAND DELETE REMOTE BOT FROM control
   
   def command_del_control_bot(data, buffer, NULL1, NULL2, cmd_hash, args):
-    global wrecon_remote_bots_control
+    global WRECON_REMOTE_BOTS_CONTROL
     v_err       = False
     v_err_topic = 'DELETE ERROR'
     if args:
       if len(args) == 1:
-        if args[0] in wrecon_remote_bots_control:
-          del wrecon_remote_bots_control[args[0]]
-          weechat.command(buffer, '/secure set wrecon_remote_bots_control %s' % (wrecon_remote_bots_control))
+        if args[0] in WRECON_REMOTE_BOTS_CONTROL:
+          del WRECON_REMOTE_BOTS_CONTROL[args[0]]
+          weechat.command(buffer, '/secure set WRECON_REMOTE_BOTS_CONTROL %s' % (WRECON_REMOTE_BOTS_CONTROL))
           f_message(data, buffer, 'DELETE', ['BOT SUCCESSFULLY DELETED'])
         else:
           f_message(data, buffer, v_err_topic, ['UNKNOWN BOT ID'])
@@ -1186,17 +1188,17 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   # COMMAND GRANT
   
   def command_grant_bot(data, buffer, NULL1, NULL2, cmd_hash, args):
-    global wrecon_remote_bots_granted
+    global WRECON_REMOTE_BOTS_GRANTED
     v_err       = False
     v_err_topic = 'GRANT ERROR'
     if len(args) >= 1:
       new_remote_bot_id  = args[0]
       if len(args) == 1:
-        wrecon_remote_bots_granted[new_remote_bot_id] = ''
+        WRECON_REMOTE_BOTS_GRANTED[new_remote_bot_id] = ''
       else:
         args.pop(0)
-        wrecon_remote_bots_granted[new_remote_bot_id] = ' '.join(map(str, args))
-      weechat.command(buffer, '/secure set wrecon_remote_bots_granted %s' % (wrecon_remote_bots_granted))
+        WRECON_REMOTE_BOTS_GRANTED[new_remote_bot_id] = ' '.join(map(str, args))
+      weechat.command(buffer, '/secure set WRECON_REMOTE_BOTS_GRANTED %s' % (WRECON_REMOTE_BOTS_GRANTED))
       f_message_simple(data, buffer, 'BOT SUCCESSFULLY GRANTED')
     else:
       v_err = True
@@ -1212,7 +1214,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
     /wrecon GRANT %s
     /wrecon G %s
     /wrecon G %s %s
-    ''' % (f_random_generator(16), f_random_generator(16), f_random_generator(16), random.choice(wrecon_default_botnames))
+    ''' % (f_random_generator(16), f_random_generator(16), f_random_generator(16), random.choice(WRECON_DEFAULT_BOTNAMES))
   SCRIPT_COMPLETION            = SCRIPT_COMPLETION + ' || G || GRANT'
   SCRIPT_COMMAND_CALL['grant'] = command_grant_bot
   SCRIPT_COMMAND_CALL['g']     = command_grant_bot
@@ -1288,7 +1290,7 @@ UPDATE     UP[DATE] [botid]
   # COMMAND LIST
   
   def command_list_bot(data, buffer, NULL1, NULL2, cmd_hash, args):
-    global wrecon_remote_bots_control, wrecon_remote_bots_granted, wrecon_remote_bots_advertised
+    global WRECON_REMOTE_BOTS_CONTROL, WRECON_REMOTE_BOTS_GRANTED, WRECON_REMOTE_BOTS_ADVERTISED
     v_err       = False
     v_err_topic = 'LIST ERROR'
     v_topic     = 'LIST INFO'
@@ -1297,27 +1299,27 @@ UPDATE     UP[DATE] [botid]
       if v_param in ['a', 'added', 'g', 'granted']:
         out_message = []
         if v_param in ['a', 'added']:
-          if wrecon_remote_bots_control:
-            for reg_bot in wrecon_remote_bots_control:
-              if len(wrecon_remote_bots_control[reg_bot]) == 1:
+          if WRECON_REMOTE_BOTS_CONTROL:
+            for reg_bot in WRECON_REMOTE_BOTS_CONTROL:
+              if len(WRECON_REMOTE_BOTS_CONTROL[reg_bot]) == 1:
                 out_msg = reg_bot
               else:
-                out_msg = '%s - %s' % (reg_bot, wrecon_remote_bots_control[reg_bot][1])
-              if reg_bot in wrecon_remote_bots_advertised:
-                out_msg = out_msg + ' (%s)' % wrecon_remote_bots_advertised[reg_bot].split('|')[0]
+                out_msg = '%s - %s' % (reg_bot, WRECON_REMOTE_BOTS_CONTROL[reg_bot][1])
+              if reg_bot in WRECON_REMOTE_BOTS_ADVERTISED:
+                out_msg = out_msg + ' (%s)' % WRECON_REMOTE_BOTS_ADVERTISED[reg_bot].split('|')[0]
               out_message.append(out_msg)
             f_message(data, buffer, '%s ADDED BOTS' % (v_topic), out_message)
           else:
             f_message(data, buffer, '%s ADDED BOTS' % (v_topic), ['No registered remote bots'])
         else:
-          if wrecon_remote_bots_granted:
-            for reg_bot in wrecon_remote_bots_granted:
-              if len(wrecon_remote_bots_granted[reg_bot]) == 0:
+          if WRECON_REMOTE_BOTS_GRANTED:
+            for reg_bot in WRECON_REMOTE_BOTS_GRANTED:
+              if len(WRECON_REMOTE_BOTS_GRANTED[reg_bot]) == 0:
                 out_msg = reg_bot
               else:
-                out_msg = '%s - %s' % (reg_bot, wrecon_remote_bots_granted[reg_bot])
-              if reg_bot in wrecon_remote_bots_advertised:
-                out_msg = out_msg + ' (%s)' % (wrecon_remote_bots_advertised[reg_bot]).split('|')[0]
+                out_msg = '%s - %s' % (reg_bot, WRECON_REMOTE_BOTS_GRANTED[reg_bot])
+              if reg_bot in WRECON_REMOTE_BOTS_ADVERTISED:
+                out_msg = out_msg + ' (%s)' % (WRECON_REMOTE_BOTS_ADVERTISED[reg_bot]).split('|')[0]
               out_message.append(out_msg)
             f_message(data, buffer, '%s GRANTED BOTS' % (v_topic), out_message)
           else:
@@ -1355,18 +1357,18 @@ UPDATE     UP[DATE] [botid]
   # COMMANDS ME
   
   def command_me(data, buffer, NULL1, NULL2, cmd_hash, args):
-    global wrecon_server, wrecon_channel, wrecon_channel_key, wrecon_channel_encryption_key, wrecon_bot_name, wrecon_bot_id, wrecon_bot_key, SCRIPT_VERSION, SCRIPT_TIMESTAMP
-    info_message     = ['Bot Name  : %s' % (wrecon_bot_name)]
-    info_message.append('Bot ID    : %s' % (wrecon_bot_id))
-    info_message.append('Bot KEY   : %s' % (wrecon_bot_key))
+    global WRECON_SERVER, WRECON_CHANNEL, WRECON_CHANNEL_KEY, WRECON_CHANNEL_ENCRYPTION_KEY, WRECON_BOT_NAME, WRECON_BOT_ID, WRECON_BOT_KEY, SCRIPT_VERSION, SCRIPT_TIMESTAMP
+    info_message     = ['Bot Name  : %s' % (WRECON_BOT_NAME)]
+    info_message.append('Bot ID    : %s' % (WRECON_BOT_ID))
+    info_message.append('Bot KEY   : %s' % (WRECON_BOT_KEY))
     info_message.append('VERSION   : %s' % (SCRIPT_VERSION))
     info_message.append('TIMESTAMP : %s' % (SCRIPT_TIMESTAMP))
-    if wrecon_channel and wrecon_server:
+    if WRECON_CHANNEL and WRECON_SERVER:
       info_message.append('--- REGISTERED SERVER and CHANNEL ---')
-      info_message.append('SERVER                 : %s' % (wrecon_server))
-      info_message.append('CHANNEL                : %s' % (wrecon_channel))
-      info_message.append('CHANNEL KEY            : %s' % (wrecon_channel_key))
-      info_message.append('CHANNEL ENCRYPTION KEY : %s' % (wrecon_channel_encryption_key))
+      info_message.append('SERVER                 : %s' % (WRECON_SERVER))
+      info_message.append('CHANNEL                : %s' % (WRECON_CHANNEL))
+      info_message.append('CHANNEL KEY            : %s' % (WRECON_CHANNEL_KEY))
+      info_message.append('CHANNEL ENCRYPTION KEY : %s' % (WRECON_CHANNEL_ENCRYPTION_KEY))
     f_message(data, buffer, 'INFO', info_message)
     return weechat.WEECHAT_RC_OK
   
@@ -1393,48 +1395,48 @@ UPDATE     UP[DATE] [botid]
   def command_register_channel(data, buffer, NULL1, NULL2, cmd_hash, args):
     v_err = False
     if len(args) == 2:
-      global wrecon_channel, wrecon_server, wrecon_channel_key, wrecon_channel_encryption_key, wrecon_buffer_channel
-      if wrecon_server and wrecon_channel:
+      global WRECON_CHANNEL, WRECON_SERVER, WRECON_CHANNEL_KEY, WRECON_CHANNEL_ENCRYPTION_KEY, WRECON_BUFFER_CHANNEL
+      if WRECON_SERVER and WRECON_CHANNEL:
         v_err = True
       else:
-        wrecon_channel_key            = args[0]
-        wrecon_channel_encryption_key = args[1]
-        wrecon_server                 = weechat.buffer_get_string(buffer, 'localvar_server')
-        wrecon_channel                = weechat.buffer_get_string(buffer, 'localvar_channel')
-        wrecon_buffer_channel         = buffer
-        v_message_out     = ['SERVER                 : %s' % (wrecon_server)]
-        v_message_out.append('CHANNEL                : %s' % (wrecon_channel))
-        v_message_out.append('CHANNEL KEY            : %s' % (wrecon_channel_key))
-        v_message_out.append('CHANNEL ENCRYPTION KEY : %s' % (wrecon_channel_encryption_key))
+        WRECON_CHANNEL_KEY            = args[0]
+        WRECON_CHANNEL_ENCRYPTION_KEY = args[1]
+        WRECON_SERVER                 = weechat.buffer_get_string(buffer, 'localvar_server')
+        WRECON_CHANNEL                = weechat.buffer_get_string(buffer, 'localvar_channel')
+        WRECON_BUFFER_CHANNEL         = buffer
+        v_message_out     = ['SERVER                 : %s' % (WRECON_SERVER)]
+        v_message_out.append('CHANNEL                : %s' % (WRECON_CHANNEL))
+        v_message_out.append('CHANNEL KEY            : %s' % (WRECON_CHANNEL_KEY))
+        v_message_out.append('CHANNEL ENCRYPTION KEY : %s' % (WRECON_CHANNEL_ENCRYPTION_KEY))
         f_message(data, buffer, 'REGISTER INFO', v_message_out)
-        weechat.command(buffer, '/secure set wrecon_server %s' % (wrecon_server))
-        weechat.command(buffer, '/secure set wrecon_channel %s' % (wrecon_channel))
-        weechat.command(buffer, '/secure set wrecon_channel_key %s' % (wrecon_channel_key))
-        f_change_modeop(data, buffer, wrecon_server, wrecon_channel)
-        weechat.command(buffer, '/secure set wrecon_channel_encryption_key %s' % (wrecon_channel_encryption_key))
-        weechat.command(buffer, '/ircrypt set-key -server %s %s %s' % (wrecon_server, wrecon_channel, wrecon_channel_encryption_key))
-        weechat.command(buffer, '/ircrypt set-cipher -server %s %s aes256' % (wrecon_server, wrecon_channel))
+        weechat.command(buffer, '/secure set WRECON_SERVER %s' % (WRECON_SERVER))
+        weechat.command(buffer, '/secure set WRECON_CHANNEL %s' % (WRECON_CHANNEL))
+        weechat.command(buffer, '/secure set WRECON_CHANNEL_KEY %s' % (WRECON_CHANNEL_KEY))
+        f_change_modeop(data, buffer, WRECON_SERVER, WRECON_CHANNEL)
+        weechat.command(buffer, '/secure set WRECON_CHANNEL_ENCRYPTION_KEY %s' % (WRECON_CHANNEL_ENCRYPTION_KEY))
+        weechat.command(buffer, '/ircrypt set-key -server %s %s %s' % (WRECON_SERVER, WRECON_CHANNEL, WRECON_CHANNEL_ENCRYPTION_KEY))
+        weechat.command(buffer, '/ircrypt set-cipher -server %s %s aes256' % (WRECON_SERVER, WRECON_CHANNEL))
         
         f_buffer_hook()
         
         save_options = False
-        wrecon_server_autoconnect   = weechat.string_eval_expression("${irc.server.%s.autoconnect}" % (wrecon_server), {}, {}, {})
-        wrecon_server_autoreconnect = weechat.string_eval_expression("${irc.server.%s.autoreconnect}" % (wrecon_server), {}, {}, {})
-        wrecon_channel_autorejoin   = weechat.string_eval_expression("${irc.server.%s.autorejoin}" % (wrecon_server), {}, {}, {})
+        wrecon_server_autoconnect   = weechat.string_eval_expression("${irc.server.%s.autoconnect}" % (WRECON_SERVER), {}, {}, {})
+        wrecon_server_autoreconnect = weechat.string_eval_expression("${irc.server.%s.autoreconnect}" % (WRECON_SERVER), {}, {}, {})
+        wrecon_channel_autorejoin   = weechat.string_eval_expression("${irc.server.%s.autorejoin}" % (WRECON_SERVER), {}, {}, {})
         
         if wrecon_server_autoconnect != 'on':
-          weechat.command(buffer, '/set irc.server.%s.autoconnect on' % (wrecon_server))
+          weechat.command(buffer, '/set irc.server.%s.autoconnect on' % (WRECON_SERVER))
           save_options = True
         
         if wrecon_server_autoreconnect != 'on':
-          weechat.command(buffer, '/set irc.server.%s.autoreconnect on' % (wrecon_server))
+          weechat.command(buffer, '/set irc.server.%s.autoreconnect on' % (WRECON_SERVER))
           save_options = True
         
         if wrecon_channel_autorejoin != 'on':
-          weechat.command(buffer, '/set irc.server.%s.autorejoin on' % (wrecon_server))
+          weechat.command(buffer, '/set irc.server.%s.autorejoin on' % (WRECON_SERVER))
           save_options = True
         
-        setup_add = f_setup_autojoin_add(buffer, wrecon_server, wrecon_channel)
+        setup_add = f_setup_autojoin_add(buffer, WRECON_SERVER, WRECON_CHANNEL)
         if setup_add == True:
           save_options = True
         
@@ -1443,7 +1445,7 @@ UPDATE     UP[DATE] [botid]
     else:
       v_err = True
     if v_err == True:
-      if wrecon_server and wrecon_channel:
+      if WRECON_SERVER and WRECON_CHANNEL:
         f_message(data, buffer, 'REGISTER ERROR', ['ALREADY REGISTERED > First UNREGISTER, then REGISTER again.'])
       else:
         f_message(data, buffer, 'REGISTER ERROR', ['MISSING PARAMETERS > 2 expected. See help.'])
@@ -1475,10 +1477,10 @@ UPDATE     UP[DATE] [botid]
   uniq_hash_cmd_rename = ''
   
   def f_save_new_name(data, buffer, newname):
-    global wrecon_bot_name, wrecon_server, wrecon_channel, wrecon_bot_id, REMOTE_ADVERTISED
+    global WRECON_BOT_NAME, WRECON_SERVER, WRECON_CHANNEL, WRECON_BOT_ID, REMOTE_ADVERTISED
     REMOTE_ADVERTISED = False
-    weechat.command(buffer,'/secure set wrecon_bot_name %s' % (newname))
-    wrecon_bot_name = newname
+    weechat.command(buffer,'/secure set WRECON_BOT_NAME %s' % (newname))
+    WRECON_BOT_NAME = newname
     info_message = ['Your bot Name has been changed to \'%s\'' % (newname)]
     f_change_buffer_title()
     f_message(data, buffer, 'RENAME INFO', info_message)
@@ -1492,9 +1494,9 @@ UPDATE     UP[DATE] [botid]
     v_topic     = 'RENAME INFO'
     if args:
       if len(args) >= 2:
-        global wrecon_bot_newname, wrecon_buffer_channel, uniq_hash
+        global wrecon_bot_newname, WRECON_BUFFER_CHANNEL, uniq_hash
         if args[0].lower() == 'm' or args[0].lower() == 'mybot':
-          f_save_new_name(data, wrecon_buffer_channel, f_get_name(0, args))
+          f_save_new_name(data, WRECON_BUFFER_CHANNEL, f_get_name(0, args))
         else:
           command_rename_remote(data, buffer, args)
       else:
@@ -1515,24 +1517,24 @@ UPDATE     UP[DATE] [botid]
     /wrecon RENAME MYBOT %s
     /wrecon RENAME %s %s
     /wrecon REN M %s
-    ''' % (random.choice(wrecon_default_botnames), f_random_generator(16), random.choice(wrecon_default_botnames), random.choice(wrecon_default_botnames))
+    ''' % (random.choice(WRECON_DEFAULT_BOTNAMES), f_random_generator(16), random.choice(WRECON_DEFAULT_BOTNAMES), random.choice(WRECON_DEFAULT_BOTNAMES))
   SCRIPT_COMPLETION             = SCRIPT_COMPLETION + ' || REN || RENAME'
   SCRIPT_COMMAND_CALL['ren']    = command_rename
   SCRIPT_COMMAND_CALL['rename'] = command_rename
   
   def command_rename_remote(data, buffer, args):
-    global wrecon_bot_id
+    global WRECON_BOT_ID
     # Check if bot id belong to own bot
-    if args[0] == wrecon_bot_id:
+    if args[0] == WRECON_BOT_ID:
       f_save_new_name(data, buffer, f_get_name(0, args))
     else:
       # Check if bot is registered (added in bots you control)
-      global wrecon_remote_bots_control
-      if args[0] in wrecon_remote_bots_control:
+      global WRECON_REMOTE_BOTS_CONTROL
+      if args[0] in WRECON_REMOTE_BOTS_CONTROL:
         global BUFFER_CMD_REN_EXE, uniq_hash_cmd_rename
         uniq_hash_cmd_rename = f_command_counter()
         # PROTOCOL: COMMAND TO_BOT_ID FROM_BOT_ID HASH [DATA]
-        weechat.command(buffer, '%s %s %s %s %s' % (BUFFER_CMD_REN_EXE, args[0], wrecon_bot_id, uniq_hash_cmd_rename, f_get_name(0, args)))
+        weechat.command(buffer, '%s %s %s %s %s' % (BUFFER_CMD_REN_EXE, args[0], WRECON_BOT_ID, uniq_hash_cmd_rename, f_get_name(0, args)))
       else:
         f_message(data, buffer, 'RENAME ERROR', ['REMOTE BOT %s IS NOT ADDED/REGISTERED' % (args[0])])
     return weechat.WEECHAT_RC_OK
@@ -1568,14 +1570,14 @@ UPDATE     UP[DATE] [botid]
   # COMMAND REVOKE
   
   def command_revoke(data, buffer, NULL1, NULL2, cmd_hash, args):
-    global wrecon_remote_bots_granted
+    global WRECON_REMOTE_BOTS_GRANTED
     v_err       = False
     v_err_topic = 'REVOKE ERROR'
     v_topic     = 'REVOKE INFO'
     if len(args) == 1:
-      if args[0] in wrecon_remote_bots_granted:
-        del wrecon_remote_bots_granted[args[0]]
-        weechat.command(buffer, '/secure set wrecon_remote_bots_granted %s' % (wrecon_remote_bots_granted))
+      if args[0] in WRECON_REMOTE_BOTS_GRANTED:
+        del WRECON_REMOTE_BOTS_GRANTED[args[0]]
+        weechat.command(buffer, '/secure set WRECON_REMOTE_BOTS_GRANTED %s' % (WRECON_REMOTE_BOTS_GRANTED))
         f_message(data, buffer, v_topic, ['BOT SUCCESFULLY REVOKED'])
       else:
         f_message(data, buffer, v_err_topic, ['UNKNOWN BOT ID'])
@@ -1615,20 +1617,21 @@ UPDATE     UP[DATE] [botid]
   SSH_GLOBAL_OUTPUT = []
   
   def command_ssh(data, buffer, NULL1, NULL2, cmd_hash, args):
-    global wrecon_remote_bots_control
+    global WRECON_REMOTE_BOTS_CONTROL
+    global WRECON_BOT_ID, BUFFER_CMD_SSH_EXE
     v_err       = False
     v_err_topic = 'SSH ERROR'
     v_topic     = 'SSH INFO'
     # PROTOCOL: COMMAND TO_BOT_ID FROM_BOT_ID HASH [DATA]
     if len(args) == 1:
-      global wrecon_remote_bots_control
+      global WRECON_REMOTE_BOTS_CONTROL
       # 1. Check we have registered remote bot
-      if not args[0] in wrecon_remote_bots_control:
+      if not args[0] in WRECON_REMOTE_BOTS_CONTROL:
         f_message(data, buffer, v_err_topic, ['REMOTE BOT %s IS NOT ADDED/REGISTERED' % (args[0])])
       else:
-        global wrecon_remote_bots_advertised
+        global WRECON_REMOTE_BOTS_ADVERTISED
         # 2. Check remote bot has been advertised
-        if not args[0] in wrecon_remote_bots_advertised:
+        if not args[0] in WRECON_REMOTE_BOTS_ADVERTISED:
           global ADDITIONAL_ADVERTISE
           additional_key = '%s%s' % (args[0], cmd_hash)
           if not additional_key in ADDITIONAL_ADVERTISE:
@@ -1642,8 +1645,7 @@ UPDATE     UP[DATE] [botid]
             f_message(data, buffer, v_err_topic, ['REMOTE BOT %s WAS NOT ADVERTISED' % (args[0])])
             del ADDITIONAL_ADVERTISE[additional_key]
         else:
-          global wrecon_bot_id, BUFFER_CMD_SSH_EXE
-          weechat.command(buffer, '%s %s %s %s' % (BUFFER_CMD_SSH_EXE, args[0], wrecon_bot_id, cmd_hash))
+          weechat.command(buffer, '%s %s %s %s' % (BUFFER_CMD_SSH_EXE, args[0], WRECON_BOT_ID, cmd_hash))
     else:
       err_message     = ['INCORRECT NUMBER OF PARAMETERS > 1 expected, see following examples']
       err_message.append('/wrecon ssh botid')
@@ -1677,7 +1679,7 @@ UPDATE     UP[DATE] [botid]
     SSH_OUT += out
     SSH_ERR += err
     if int(rc) >= 0:
-      global SSH_HOOK_PROCESS, SSH_PROCESS_DATA, BUFFER_CMD_SSH_REP, wrecon_bot_key, BUFFER_CMD_SSH_REK
+      global SSH_HOOK_PROCESS, SSH_PROCESS_DATA, BUFFER_CMD_SSH_REP, WRECON_BOT_KEY, BUFFER_CMD_SSH_REK
       # ~ data   = SSH_PROCESS_DATA[0]
       buffer = SSH_PROCESS_DATA[1]
       # ~ tags   = SSH_PROCESS_DATA[2]
@@ -1692,7 +1694,7 @@ UPDATE     UP[DATE] [botid]
         OUT_LINES = SSH_ERR.rstrip().split('\n')
       for OUT_LINE in OUT_LINES:
         out_message       = '%s|%s' % (DATA_T, OUT_LINE)
-        message_encrypted = f_encrypt_string(out_message, wrecon_bot_key)
+        message_encrypted = f_encrypt_string(out_message, WRECON_BOT_KEY)
         weechat.command(buffer, '%s %s %s %s %s' % (BUFFER_CMD_SSH_REP, args[1], args[0], args[2], message_encrypted))
       #weechat.unhook(SSH_HOOK_PROCESS)
       SSH_HOOK_PROCESS = ''
@@ -1723,7 +1725,7 @@ UPDATE     UP[DATE] [botid]
   
   # Receive SSH (tmate) data from remote BOT
   def receive_ssh_reply(data, buffer, tags, prefix, args):
-    global wrecon_remote_bots_control, BUFFER_CMD_SSH_REK, SSH_GLOBAL_OUTPUT
+    global WRECON_REMOTE_BOTS_CONTROL, BUFFER_CMD_SSH_REK, SSH_GLOBAL_OUTPUT
     remote_bot_id = args[1]
     if BUFFER_CMD_SSH_REK in args:
       f_message_simple(data, buffer, '')
@@ -1744,8 +1746,8 @@ UPDATE     UP[DATE] [botid]
       # ~ f_message_simple(data, buffer, '%s : %s' % (args[2], dec_message))
       SSH_GLOBAL_OUTPUT = []
     else:
-      dec_key     = wrecon_remote_bots_control[remote_bot_id][0]
-      dec_message = f_decrypt_string(args[3], wrecon_remote_bots_control[args[1]][0])
+      dec_key     = WRECON_REMOTE_BOTS_CONTROL[remote_bot_id][0]
+      dec_message = f_decrypt_string(args[3], WRECON_REMOTE_BOTS_CONTROL[args[1]][0])
       SSH_GLOBAL_OUTPUT.append(dec_message)
     return weechat.WEECHAT_RC_OK
   
@@ -1761,31 +1763,31 @@ UPDATE     UP[DATE] [botid]
   # COMMAND UNREGISTER CHANNEL
   
   def command_unregister_channel(data, buffer, NULL1, NULL2, cmd_hash, args):
-    global wrecon_channel, wrecon_server, wrecon_channel_key, wrecon_channel_encryption_key
+    global WRECON_CHANNEL, WRECON_SERVER, WRECON_CHANNEL_KEY, WRECON_CHANNEL_ENCRYPTION_KEY
     v_err = False
-    if wrecon_channel and wrecon_server:
+    if WRECON_CHANNEL and WRECON_SERVER:
       
-      save_options = f_setup_autojoin_del(buffer, wrecon_server, wrecon_channel)
+      save_options = f_setup_autojoin_del(buffer, WRECON_SERVER, WRECON_CHANNEL)
         
       if save_options == True:
         weechat.command(buffer, '/save')
       
       f_buffer_unhook()
       
-      weechat.command(buffer, '/secure del wrecon_server')
-      weechat.command(buffer, '/secure del wrecon_channel')
-      weechat.command(buffer, '/secure del wrecon_channel_key')
-      weechat.command(buffer, '/secure del wrecon_channel_encryption_key')
-      weechat.command(buffer, '/ircrypt remove-key -server %s %s' % (wrecon_server, wrecon_channel))
-      weechat.command(buffer, '/ircrypt remove-cipher -server %s %s' % (wrecon_server, wrecon_channel))
+      weechat.command(buffer, '/secure del WRECON_SERVER')
+      weechat.command(buffer, '/secure del WRECON_CHANNEL')
+      weechat.command(buffer, '/secure del WRECON_CHANNEL_KEY')
+      weechat.command(buffer, '/secure del WRECON_CHANNEL_ENCRYPTION_KEY')
+      weechat.command(buffer, '/ircrypt remove-key -server %s %s' % (WRECON_SERVER, WRECON_CHANNEL))
+      weechat.command(buffer, '/ircrypt remove-cipher -server %s %s' % (WRECON_SERVER, WRECON_CHANNEL))
       unreg_message     = ['Channel and server unregistered.']
-      unreg_message.append('In case you no longer need current channel (%s), remove key from channel by following command:' % (wrecon_channel))
-      unreg_message.append('/mode %s -k' % (wrecon_channel))
+      unreg_message.append('In case you no longer need current channel (%s), remove key from channel by following command:' % (WRECON_CHANNEL))
+      unreg_message.append('/mode %s -k' % (WRECON_CHANNEL))
       f_message(data, buffer, 'UNREGISTER', unreg_message)
-      wrecon_channel                = ''
-      wrecon_server                 = ''
-      wrecon_channel_encryption_key = ''
-      wrecon_channel_key            = ''
+      WRECON_CHANNEL                = ''
+      WRECON_SERVER                 = ''
+      WRECON_CHANNEL_ENCRYPTION_KEY = ''
+      WRECON_CHANNEL_KEY            = ''
     else:
       v_err = True
     if v_err == True:
@@ -1827,36 +1829,36 @@ UPDATE     UP[DATE] [botid]
         err_msg.append('/wrecon update [botid]')
         f_message(data, buffer, v_err_topic, err_msg)
       else:
-        global wrecon_bot_id
+        global WRECON_BOT_ID
         # Check BOTID belong to itself BOTID
-        if args[0] == wrecon_bot_id:
+        if args[0] == WRECON_BOT_ID:
           f_check_and_update(data, buffer)
         else:
           # Check we have registered remote bot
-          global wrecon_remote_bots_control
-          if not args[0] in wrecon_remote_bots_control:
+          global WRECON_REMOTE_BOTS_CONTROL
+          if not args[0] in WRECON_REMOTE_BOTS_CONTROL:
             f_message(data, buffer, v_err_topic, ['REMOTE BOT %s IS NOT ADDED/REGISTERED' % (args[0])])
           else:
             # Check remote bot has been advertised
-            global wrecon_remote_bots_advertised
-            if not args[0] in wrecon_remote_bots_advertised:
+            global WRECON_REMOTE_BOTS_ADVERTISED
+            if not args[0] in WRECON_REMOTE_BOTS_ADVERTISED:
               global ADDITIONAL_ADVERTISE
               additional_key = '%s%s' % (args[0], cmd_hash)
               if not additional_key in ADDITIONAL_ADVERTISE:
                 # Request additional advertise of remote bot
                 global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP, SCRIPT_COMMAND_CALL
                 xargs = args
-                xargs.append(wrecon_bot_id)
+                xargs.append(WRECON_BOT_ID)
                 xargs.append(cmd_hash)
                 ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['up'], data, buffer, '', '', cmd_hash, xargs]
-                weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[0], wrecon_bot_id, cmd_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
+                weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[0], WRECON_BOT_ID, cmd_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
               else:
                 # In case remote bot has been additionally asked for advertisement and was not  advertised, then it is error
                 f_message(data, buffer, v_error_topic, ['REMOTE BOT %s WAS NOT ADVERTISED' % (args[0])])
                 del ADDITIONAL_ADVERTISE[additional_key]
             else:
               global BUFFER_CMD_UPD_EXE
-              weechat.command(buffer, '%s %s %s %s' % (BUFFER_CMD_UPD_EXE, args[0], wrecon_bot_id, cmd_hash))
+              weechat.command(buffer, '%s %s %s %s' % (BUFFER_CMD_UPD_EXE, args[0], WRECON_BOT_ID, cmd_hash))
 
     return weechat.WEECHAT_RC_OK
   
@@ -1900,11 +1902,11 @@ UPDATE     UP[DATE] [botid]
   
   # Command is called from received remote command (from remote bot)
   def command_validate_remote_bot(data, buffer, call_requested_function, tags, prefix, args):
-    global wrecon_bot_id
-    if args[1] == wrecon_bot_id:
+    global WRECON_BOT_ID
+    if args[1] == WRECON_BOT_ID:
       call_requested_function(data, buffer, tags, prefix, args)
     else:
-      # ~ global wrecon_remote_bots_advertised, wrecon_remote_bots_granted, wrecon_remote_bots_verified
+      # ~ global WRECON_REMOTE_BOTS_ADVERTISED, WRECON_REMOTE_BOTS_GRANTED, WRECON_REMOTE_BOTS_VERIFIED
       # args:
       # 0 - TO BOT ID
       # 1 - FROM BOT ID
@@ -1912,13 +1914,13 @@ UPDATE     UP[DATE] [botid]
       # 3 - [DATA]
       # 
       # 1. check remote bot is granted
-      global wrecon_remote_bots_granted
-      if not args[1] in wrecon_remote_bots_granted:
+      global WRECON_REMOTE_BOTS_GRANTED
+      if not args[1] in WRECON_REMOTE_BOTS_GRANTED:
         reply_validation_error(data, buffer, 'ACCESS IS NOT GRANTED', args)
       else:
         # 2. check remote bot was advertised
-        global wrecon_remote_bots_advertised, ADDITIONAL_ADVERTISE
-        if not args[1] in wrecon_remote_bots_advertised:
+        global WRECON_REMOTE_BOTS_ADVERTISED, ADDITIONAL_ADVERTISE
+        if not args[1] in WRECON_REMOTE_BOTS_ADVERTISED:
           global ADDITIONAL_ADVERTISE
           additional_key = '%s%s' % (args[1], args[2])
           if not additional_key in ADDITIONAL_ADVERTISE:
@@ -1936,12 +1938,12 @@ UPDATE     UP[DATE] [botid]
           # - this new feature will be incompatible with older version
           
           # 3. check remote bot was verified
-          global wrecon_remote_bots_verified, BUFFER_CMD_VAL_FUNCTION
+          global WRECON_REMOTE_BOTS_VERIFIED, BUFFER_CMD_VAL_FUNCTION
           v_validated = False
           v_command_key = '%s%s' % (args[1], args[2])
-          if args[1] in wrecon_remote_bots_verified:
+          if args[1] in WRECON_REMOTE_BOTS_VERIFIED:
             # 4. execute function when bot was properly validated
-            if wrecon_remote_bots_verified[args[1]] == wrecon_remote_bots_advertised[args[1]]:
+            if WRECON_REMOTE_BOTS_VERIFIED[args[1]] == WRECON_REMOTE_BOTS_ADVERTISED[args[1]]:
               global BUFFER_CMD_VAL_REA
               v_validated = True
               weechat.command(buffer, '%s %s %s %s EXECUTION ACCEPTED' % (BUFFER_CMD_VAL_REA, args[1], args[0], args[2]))
@@ -1950,9 +1952,9 @@ UPDATE     UP[DATE] [botid]
               call_requested_function(data, buffer, tags, prefix, args)
           if v_validated == False:
             # Ensure validation
-            global wrecon_bot_key, BUFFER_CMD_VAL_EXE
+            global WRECON_BOT_KEY, BUFFER_CMD_VAL_EXE
             generate_seecret = f_random_generator(31)
-            send_secret = f_encrypt_string(generate_seecret, wrecon_bot_key)
+            send_secret = f_encrypt_string(generate_seecret, WRECON_BOT_KEY)
             BUFFER_CMD_VAL_FUNCTION[v_command_key] = [generate_seecret, call_requested_function, tags, prefix, args]
             weechat.command(buffer, '%s %s %s %s %s' % (BUFFER_CMD_VAL_EXE, args[1], args[0], args[2], send_secret))
             # ~ weechat.command(buffer, 'Wi will do a validation... %s' % (args))
@@ -1961,8 +1963,8 @@ UPDATE     UP[DATE] [botid]
   
   # ~ BUFFER_CMD_VAL_EXE
   def receive_validation(data, buffer, tags, prefix, args):
-    global wrecon_remote_bots_control, BUFFER_CMD_VAL_REP
-    decrypt_key      = wrecon_remote_bots_control[args[1]][0]
+    global WRECON_REMOTE_BOTS_CONTROL, BUFFER_CMD_VAL_REP
+    decrypt_key      = WRECON_REMOTE_BOTS_CONTROL[args[1]][0]
     decrypt_message  = f_decrypt_string(args[3], decrypt_key)
     count_hash       = f_get_hash(decrypt_message)
     send_secret_hash = f_encrypt_string(count_hash, decrypt_key)
@@ -1978,13 +1980,13 @@ UPDATE     UP[DATE] [botid]
     global BUFFER_CMD_VAL_FUNCTION
     v_command_key = '%s%s' % (args[1], args[2])
     if v_command_key in BUFFER_CMD_VAL_FUNCTION:
-      global wrecon_bot_key
-      decrypt_hash = f_decrypt_string(args[3], wrecon_bot_key)
+      global WRECON_BOT_KEY
+      decrypt_hash = f_decrypt_string(args[3], WRECON_BOT_KEY)
       stored_hash  = f_get_hash(BUFFER_CMD_VAL_FUNCTION[v_command_key][0])
       if decrypt_hash == stored_hash:
         f_message_simple(data, buffer, 'VALIDATION SUCCESSFUL')
-        global wrecon_remote_bots_advertised, wrecon_remote_bots_verified
-        wrecon_remote_bots_verified[args[1]] = wrecon_remote_bots_advertised[args[1]]
+        global WRECON_REMOTE_BOTS_ADVERTISED, WRECON_REMOTE_BOTS_VERIFIED
+        WRECON_REMOTE_BOTS_VERIFIED[args[1]] = WRECON_REMOTE_BOTS_ADVERTISED[args[1]]
         exe_command = BUFFER_CMD_VAL_FUNCTION[v_command_key][1]
         exe_tags    = BUFFER_CMD_VAL_FUNCTION[v_command_key][2]
         exe_prefix  = BUFFER_CMD_VAL_FUNCTION[v_command_key][3]
@@ -2077,10 +2079,10 @@ UPDATE     UP[DATE] [botid]
     v_cmd       = v_arguments[0]
     if v_cmd in SCRIPT_BUFFER_CALL:
       # PROTOCOL: COMMAND TO_BOT_ID FROM_BOT_ID HASH [DATA]
-      global BUFFER_CMD_ADV_EXE, wrecon_bot_id
+      global BUFFER_CMD_ADV_EXE, WRECON_BOT_ID
       v_arguments.pop(0)
       # Check the command from buffer is for advertisement or it belong to our BOT
-      if v_cmd == BUFFER_CMD_ADV_EXE or v_arguments[0] == wrecon_bot_id:
+      if v_cmd == BUFFER_CMD_ADV_EXE or v_arguments[0] == WRECON_BOT_ID:
         xtags   = tags.split(',')
         SCRIPT_BUFFER_CALL[v_cmd](data, buffer, xtags, prefix, v_arguments)
     else:
@@ -2098,19 +2100,19 @@ UPDATE     UP[DATE] [botid]
   # HOOK AND UNHOOK BUFFER
   
   def f_buffer_hook():
-    global SCRIPT_CALLBACK_BUFFER, wrecon_buffer_hooked, wrecon_hook_buffer, wrecon_buffer_channel
-    wrecon_buffer_channel = f_get_buffer_channel()
-    if wrecon_buffer_hooked == False:
-      if wrecon_buffer_channel:
-        wrecon_buffer_hooked = True
-        wrecon_hook_buffer    = weechat.hook_print(wrecon_buffer_channel, '', COMMAND_IN_BUFFER, 1, SCRIPT_CALLBACK_BUFFER, '')
+    global SCRIPT_CALLBACK_BUFFER, WRECON_BUFFER_HOOKED, WRECON_HOOK_BUFFER, WRECON_BUFFER_CHANNEL
+    WRECON_BUFFER_CHANNEL = f_get_buffer_channel()
+    if WRECON_BUFFER_HOOKED == False:
+      if WRECON_BUFFER_CHANNEL:
+        WRECON_BUFFER_HOOKED = True
+        WRECON_HOOK_BUFFER    = weechat.hook_print(WRECON_BUFFER_CHANNEL, '', COMMAND_IN_BUFFER, 1, SCRIPT_CALLBACK_BUFFER, '')
     return weechat.WEECHAT_RC_OK
   
   def f_buffer_unhook():
-    global wrecon_buffer_hooked, wrecon_hook_buffer
-    if wrecon_buffer_hooked == True:
-      wrecon_buffer_hooked = False
-      weechat.unhook(wrecon_hook_buffer)
+    global WRECON_BUFFER_HOOKED, WRECON_HOOK_BUFFER
+    if WRECON_BUFFER_HOOKED == True:
+      WRECON_BUFFER_HOOKED = False
+      weechat.unhook(WRECON_HOOK_BUFFER)
     return weechat.WEECHAT_RC_OK
   
   #
@@ -2120,7 +2122,7 @@ UPDATE     UP[DATE] [botid]
   #
   # AND HOOK COMMAND
   
-  wrecon_hook_local_commands = weechat.hook_command(SCRIPT_NAME, SCRIPT_DESC, SCRIPT_ARGS, SCRIPT_ARGS_DESCRIPTION, SCRIPT_COMPLETION, SCRIPT_CALLBACK, '')
+  WRECON_HOOK_LOCAL_COMMAND = weechat.hook_command(SCRIPT_NAME, SCRIPT_DESC, SCRIPT_ARGS, SCRIPT_ARGS_DESCRIPTION, SCRIPT_COMPLETION, SCRIPT_CALLBACK, '')
   
   #####
   #
