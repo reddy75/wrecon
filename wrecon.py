@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.8 - Version correction
 # 1.18.7 - Fixed bug of variables (lower cases and UPPER CASEs)
 #        - in commands REGISTER and UNREGISTER
 # 1.18.6 - Fixed bug of variables (lower cases and UPPER CASEs)
@@ -122,8 +123,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.6'
-SCRIPT_TIMESTAMP = '20200321185520CET'
+SCRIPT_VERSION   = '1.18.8'
+SCRIPT_TIMESTAMP = '20200323211636CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
