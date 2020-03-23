@@ -29,6 +29,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.7 - Fixed bug of variables (lower cases and UPPER CASEs)
+#        - in commands REGISTER and UNREGISTER
 # 1.18.6 - Fixed bug of variables (lower cases and UPPER CASEs)
 # 1.18.5 - Fixed list command (correction of command arguments)
 # 1.18.4 - Fix command ADVERTISE
@@ -1409,11 +1411,11 @@ UPDATE     UP[DATE] [botid]
         v_message_out.append('CHANNEL KEY            : %s' % (WRECON_CHANNEL_KEY))
         v_message_out.append('CHANNEL ENCRYPTION KEY : %s' % (WRECON_CHANNEL_ENCRYPTION_KEY))
         f_message(data, buffer, 'REGISTER INFO', v_message_out)
-        weechat.command(buffer, '/secure set WRECON_SERVER %s' % (WRECON_SERVER))
-        weechat.command(buffer, '/secure set WRECON_CHANNEL %s' % (WRECON_CHANNEL))
-        weechat.command(buffer, '/secure set WRECON_CHANNEL_KEY %s' % (WRECON_CHANNEL_KEY))
+        weechat.command(buffer, '/secure set wrecon_server %s' % (WRECON_SERVER))
+        weechat.command(buffer, '/secure set wrecon_channel %s' % (WRECON_CHANNEL))
+        weechat.command(buffer, '/secure set wrecon_channel_key %s' % (WRECON_CHANNEL_KEY))
         f_change_modeop(data, buffer, WRECON_SERVER, WRECON_CHANNEL)
-        weechat.command(buffer, '/secure set WRECON_CHANNEL_ENCRYPTION_KEY %s' % (WRECON_CHANNEL_ENCRYPTION_KEY))
+        weechat.command(buffer, '/secure set wrecon_channel_encryption_key %s' % (WRECON_CHANNEL_ENCRYPTION_KEY))
         weechat.command(buffer, '/ircrypt set-key -server %s %s %s' % (WRECON_SERVER, WRECON_CHANNEL, WRECON_CHANNEL_ENCRYPTION_KEY))
         weechat.command(buffer, '/ircrypt set-cipher -server %s %s aes256' % (WRECON_SERVER, WRECON_CHANNEL))
         
@@ -1774,10 +1776,10 @@ UPDATE     UP[DATE] [botid]
       
       f_buffer_unhook()
       
-      weechat.command(buffer, '/secure del WRECON_SERVER')
-      weechat.command(buffer, '/secure del WRECON_CHANNEL')
-      weechat.command(buffer, '/secure del WRECON_CHANNEL_KEY')
-      weechat.command(buffer, '/secure del WRECON_CHANNEL_ENCRYPTION_KEY')
+      weechat.command(buffer, '/secure del wrecon_server')
+      weechat.command(buffer, '/secure del wrecon_channel')
+      weechat.command(buffer, '/secure del wrecon_channel_key')
+      weechat.command(buffer, '/secure del wrecon_channel_encryption_key')
       weechat.command(buffer, '/ircrypt remove-key -server %s %s' % (WRECON_SERVER, WRECON_CHANNEL))
       weechat.command(buffer, '/ircrypt remove-cipher -server %s %s' % (WRECON_SERVER, WRECON_CHANNEL))
       unreg_message     = ['Channel and server unregistered.']
