@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.9 - Bug fix SSH AUTOADVERTISE
 # 1.18.8 - Version correction
 # 1.18.7 - Fixed bug of variables (lower cases and UPPER CASEs)
 #        - in commands REGISTER and UNREGISTER
@@ -123,8 +124,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.8'
-SCRIPT_TIMESTAMP = '20200323211636CET'
+SCRIPT_VERSION   = '1.18.9'
+SCRIPT_TIMESTAMP = '20200325161009CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1642,7 +1643,7 @@ UPDATE     UP[DATE] [botid]
             global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP, SCRIPT_COMMAND_CALL, WRECON_BOT_ID
             # ~ f_message_simple(data, buffer, 'ARGS : %s' % args)
             weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[0], WRECON_BOT_ID, cmd_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
-            ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['s'], data, buffer, tags, prefix, args]
+            ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['s'], data, buffer, '', '', args]
           else:
             # In case remote bot has been additionally asked for advertisement and was not advertised, then it is error
             f_message(data, buffer, v_err_topic, ['REMOTE BOT %s WAS NOT ADVERTISED' % (args[0])])
