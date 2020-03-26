@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.10 - Bug fix SSH AUTOADVETISE
 # 1.18.9 - Bug fix SSH AUTOADVERTISE
 # 1.18.8 - Version correction
 # 1.18.7 - Fixed bug of variables (lower cases and UPPER CASEs)
@@ -124,8 +125,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.9'
-SCRIPT_TIMESTAMP = '20200325161009CET'
+SCRIPT_VERSION   = '1.18.10'
+SCRIPT_TIMESTAMP = '20200326212358CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1132,8 +1133,9 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       xbuffer = ADDITIONAL_ADVERTISE[additional_key][2]
       xtags   = ADDITIONAL_ADVERTISE[additional_key][3]
       xprefix = ADDITIONAL_ADVERTISE[additional_key][4]
-      xargs   = ADDITIONAL_ADVERTISE[additional_key][5]
-      command_validate_remote_bot(xdata, xbuffer, xcmd, xtags, xprefix, xargs)
+      xcmdid  = ADDITIONAL_ADVERTISE[additional_key][5]
+      xargs   = ADDITIONAL_ADVERTISE[additional_key][6]
+      xcmd(xdata, xbuffer, xtags, xprefix, xcmdid, xargs)
     return weechat.WEECHAT_RC_OK
   
   SCRIPT_BUFFER_CALL[BUFFER_CMD_ADV_EXE] = reply_advertise
@@ -1643,7 +1645,7 @@ UPDATE     UP[DATE] [botid]
             global BUFFER_CMD_ADA_EXE, SCRIPT_VERSION, SCRIPT_TIMESTAMP, SCRIPT_COMMAND_CALL, WRECON_BOT_ID
             # ~ f_message_simple(data, buffer, 'ARGS : %s' % args)
             weechat.command(buffer, '%s %s %s %s [v%s %s]' % (BUFFER_CMD_ADA_EXE, args[0], WRECON_BOT_ID, cmd_hash, SCRIPT_VERSION, SCRIPT_TIMESTAMP))
-            ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['s'], data, buffer, '', '', args]
+            ADDITIONAL_ADVERTISE[additional_key] = [SCRIPT_COMMAND_CALL['s'], data, buffer, '', '', cmd_hash, args]
           else:
             # In case remote bot has been additionally asked for advertisement and was not advertised, then it is error
             f_message(data, buffer, v_err_topic, ['REMOTE BOT %s WAS NOT ADVERTISED' % (args[0])])
@@ -1925,7 +1927,6 @@ UPDATE     UP[DATE] [botid]
         # 2. check remote bot was advertised
         global WRECON_REMOTE_BOTS_ADVERTISED, ADDITIONAL_ADVERTISE
         if not args[1] in WRECON_REMOTE_BOTS_ADVERTISED:
-          global ADDITIONAL_ADVERTISE
           additional_key = '%s%s' % (args[1], args[2])
           if not additional_key in ADDITIONAL_ADVERTISE:
             # Initiate additional advertise of remote bot
