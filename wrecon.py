@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.11 - Bug fix UPDATE CHECK VERSION
 # 1.18.10 - Bug fix SSH AUTOADVETISE
 # 1.18.9 - Bug fix SSH AUTOADVERTISE
 # 1.18.8 - Version correction
@@ -125,8 +126,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.10'
-SCRIPT_TIMESTAMP = '20200326212358CET'
+SCRIPT_VERSION   = '1.18.11'
+SCRIPT_TIMESTAMP = '20200326215316CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -445,7 +446,13 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       
       f_message_simple(data, buffer, 'LATEST RELEASE  : %s' % latest_release)
       
-      if actual_version >= latest_release:
+      ACTUAL_VERSION = SCRIPT_VERSION.split('.')
+      LATEST_VERSION = latest_release.split('.')
+      
+      ACTUAL_VERSION = list(map(int, ACTUAL_VERSION))
+      LATEST_VERSION = list(map(int, LATEST_VERSION))
+      
+      if ACTUAL_VERSION >= LATEST_VERSION:
         f_message_simple(data, buffer, 'WRECON IS UP TO DATE')
       else:
         archive_file   = '%s.tar.gz' % latest_release
