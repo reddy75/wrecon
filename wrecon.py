@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.12 - Bug fix REGISTER/UNREGISTER (add/del registered channels and keys)
 # 1.18.11 - Bug fix UPDATE CHECK VERSION
 # 1.18.10 - Bug fix SSH AUTOADVETISE
 # 1.18.9 - Bug fix SSH AUTOADVERTISE
@@ -126,8 +127,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.11'
-SCRIPT_TIMESTAMP = '20200326215316CET'
+SCRIPT_VERSION   = '1.18.12'
+SCRIPT_TIMESTAMP = '20200327195838CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -676,8 +677,13 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
     save_setup              = False
     wrecon_channel_autojoin = weechat.string_eval_expression("${irc.server.%s.autojoin}" % (WRECON_SERVER), {}, {}, {})
     wrecon_chan_key         = '${sec.data.wrecon_channel_key}'
-    my_channels             = wrecon_channel_autojoin.split(' ')[0].split(',')
-    my_channels_keys        = wrecon_channel_autojoin.split(' ')[1].split(',')
+    
+    my_channels_and_keys    = wrecon_channel_autojoin.split(' ')
+    my_channels             = my_channels_and_keys[0].split(',')
+    my_channels_keys        = ['']
+    
+    if len(my_channels_and_keys) == 2:
+      my_channels_keys = my_channels_and_keys[1].split(',')
     
     if not new_channel in my_channels:
       my_channels.append(new_channel)
@@ -701,15 +707,20 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
     save_setup = False
     wrecon_channel_autojoin = weechat.string_eval_expression("${irc.server.%s.autojoin}" % (WRECON_SERVER), {}, {}, {})
     wrecon_chan_key         = '${sec.data.wrecon_channel_key}'
-    my_channels             = wrecon_channel_autojoin.split(' ')[0].split(',')
-    my_channels_keys        = wrecon_channel_autojoin.split(' ')[1].split(',')
+    
+    my_channels_and_keys = wrecon_channel_autojoin.split(' ')
+    my_channels          = my_channels_and_keys[0].split(',')
+    my_channels_keys     = ['']
+    
+    if len(my_channels_and_keys) == 2:
+      my_channels_keys = my_channels_and_keys[1].split(',')
     
     if del_channel in my_channels:
       # Find index of my registered channel
       my_channel_index = [i for i, elem in enumerate(my_channels) if del_channel in elem]
       for my_index in my_channel_index:
-        del my_channels[my_index]
-        del my_channels_keys[my_index]
+        my_channels.pop(my_index)
+        my_channels_keys.pop(my_index)
       f_setup_autojoin_save(buffer, my_channels, my_channels_keys)
       save_setup = True
     return save_setup
@@ -719,7 +730,8 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   def f_setup_autojoin_save(buffer, my_channels, my_channels_keys):
     export_channels = ','.join(map(str, my_channels))
     export_keys     = ','.join(map(str, my_channels_keys))
-    export_data     = '%s %s' % (export_channels, export_keys)
+    prepare_data    = [export_channels, export_keys]
+    export_data     = ' '.join(map(str, prepare_data))
     weechat.command(buffer, '/set irc.server.%s.autojoin %s' % (WRECON_SERVER, export_data))
     return
   
