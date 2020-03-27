@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.13 - Bug fix UPDATE (arguments incorrectly checked after additional advertise)
 # 1.18.12 - Bug fix REGISTER/UNREGISTER (add/del registered channels and keys)
 # 1.18.11 - Bug fix UPDATE CHECK VERSION
 # 1.18.10 - Bug fix SSH AUTOADVETISE
@@ -127,8 +128,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.12'
-SCRIPT_TIMESTAMP = '20200327195838CET'
+SCRIPT_VERSION   = '1.18.13'
+SCRIPT_TIMESTAMP = '20200327202759CET'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -1845,11 +1846,17 @@ UPDATE     UP[DATE] [botid]
     v_err       = False
     v_err_topic = 'UPDATE ERROR'
     v_topic     = 'UPDATE INFO'
+    
     if not args:
       f_check_and_update(data, buffer)
     else:
     # In case argument was provided, it consider it is remote BOTID
-      if len(args) != 1:
+      do_update = False
+      if len(args) == 1:
+        do_update = True
+      if len(args) == 3:
+        do_update = True
+      if do_update == False:
         err_msg     = ['MORE ARGUMENTS > 1 or none expected.']
         err_msg.append('/wrecon update [botid]')
         f_message(data, buffer, v_err_topic, err_msg)
