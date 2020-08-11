@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.15 - Reverting fixes of version 1.18.14
 # 1.18.14 - Allowing to accept python version since 2.7
 # 1.18.13 - Bug fix UPDATE (arguments incorrectly checked after additional advertise)
 # 1.18.12 - Bug fix REGISTER/UNREGISTER (add/del registered channels and keys)
@@ -129,8 +130,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.14'
-SCRIPT_TIMESTAMP = '20200809232927CEST'
+SCRIPT_VERSION   = '1.18.15'
+SCRIPT_TIMESTAMP = '20200811124430CEST'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
