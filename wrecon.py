@@ -29,6 +29,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Changelog:
+# 1.18.16 - Bug fix of variables
 # 1.18.15 - Reverting fixes of version 1.18.14
 # 1.18.14 - Allowing to accept python version since 2.7
 # 1.18.13 - Bug fix UPDATE (arguments incorrectly checked after additional advertise)
@@ -130,8 +131,8 @@
 
 global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_LICENSE, SCRIPT_DESC, SCRIPT_UNLOAD, SCRIPT_CONTINUE, SCRIPT_TIMESTAMP
 SCRIPT_NAME      = 'wrecon'
-SCRIPT_VERSION   = '1.18.15'
-SCRIPT_TIMESTAMP = '20200811124430CEST'
+SCRIPT_VERSION   = '1.18.16'
+SCRIPT_TIMESTAMP = '20200815083143CEST'
 SCRIPT_AUTHOR    = 'Radek Valasek'
 SCRIPT_LICENSE   = 'GPL3'
 SCRIPT_DESC      = 'Weechat Remote control (WRECON)'
@@ -913,19 +914,19 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
   #
   if not WRECON_BOT_NAME:
     WRECON_BOT_NAME = random.choice(WRECON_DEFAULT_BOTNAMES)
-    weechat.command('','/secure set WRECON_BOT_NAME %s' % (WRECON_BOT_NAME))
+    weechat.command('','/secure set wrecon_bot_name %s' % (WRECON_BOT_NAME))
   #
   #  Generate BOT ID if not exit and save it
   #
   if not WRECON_BOT_ID:
     WRECON_BOT_ID = f_random_generator(16)
-    weechat.command('','/secure set WRECON_BOT_ID %s' % (WRECON_BOT_ID))
+    weechat.command('','/secure set wrecon_bot_id %s' % (WRECON_BOT_ID))
   #
   # Generate BOT KEY if not exist and save it
   #
   if not WRECON_BOT_KEY:
     WRECON_BOT_KEY = f_random_generator(64)
-    weechat.command('','/secure set WRECON_BOT_KEY %s' % (WRECON_BOT_KEY))
+    weechat.command('','/secure set wrecon_bot_key %s' % (WRECON_BOT_KEY))
   
   #
   #
@@ -1047,7 +1048,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
         f_message(data, buffer, v_err_topic, ['ALREADY ADDED. First DEL, then ADD.'])
       else:
         WRECON_REMOTE_BOTS_CONTROL[new_remote_bot_id] = [new_remote_bot_key, new_remote_bot_note]
-        weechat.command(buffer, '/secure set WRECON_REMOTE_BOTS_CONTROL %s' % (WRECON_REMOTE_BOTS_CONTROL))
+        weechat.command(buffer, '/secure set wrecon_remote_bots_control %s' % (WRECON_REMOTE_BOTS_CONTROL))
         f_message_simple(data, buffer, 'BOT SUCCESSFULLY ADDED')
     else:
       v_err = True
@@ -1182,7 +1183,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       if len(args) == 1:
         if args[0] in WRECON_REMOTE_BOTS_CONTROL:
           del WRECON_REMOTE_BOTS_CONTROL[args[0]]
-          weechat.command(buffer, '/secure set WRECON_REMOTE_BOTS_CONTROL %s' % (WRECON_REMOTE_BOTS_CONTROL))
+          weechat.command(buffer, '/secure set wrecon_remote_bots_control %s' % (WRECON_REMOTE_BOTS_CONTROL))
           f_message(data, buffer, 'DELETE', ['BOT SUCCESSFULLY DELETED'])
         else:
           f_message(data, buffer, v_err_topic, ['UNKNOWN BOT ID'])
@@ -1226,7 +1227,7 @@ KPX4rlTJFYD/K/Hb0OM4NwaXz5Q=
       else:
         args.pop(0)
         WRECON_REMOTE_BOTS_GRANTED[new_remote_bot_id] = ' '.join(map(str, args))
-      weechat.command(buffer, '/secure set WRECON_REMOTE_BOTS_GRANTED %s' % (WRECON_REMOTE_BOTS_GRANTED))
+      weechat.command(buffer, '/secure set wrecon_remote_bots_granted %s' % (WRECON_REMOTE_BOTS_GRANTED))
       f_message_simple(data, buffer, 'BOT SUCCESSFULLY GRANTED')
     else:
       v_err = True
@@ -1507,7 +1508,7 @@ UPDATE     UP[DATE] [botid]
   def f_save_new_name(data, buffer, newname):
     global WRECON_BOT_NAME, WRECON_SERVER, WRECON_CHANNEL, WRECON_BOT_ID, REMOTE_ADVERTISED
     REMOTE_ADVERTISED = False
-    weechat.command(buffer,'/secure set WRECON_BOT_NAME %s' % (newname))
+    weechat.command(buffer,'/secure set wrecon_bot_name %s' % (newname))
     WRECON_BOT_NAME = newname
     info_message = ['Your bot Name has been changed to \'%s\'' % (newname)]
     f_change_buffer_title()
@@ -1605,7 +1606,7 @@ UPDATE     UP[DATE] [botid]
     if len(args) == 1:
       if args[0] in WRECON_REMOTE_BOTS_GRANTED:
         del WRECON_REMOTE_BOTS_GRANTED[args[0]]
-        weechat.command(buffer, '/secure set WRECON_REMOTE_BOTS_GRANTED %s' % (WRECON_REMOTE_BOTS_GRANTED))
+        weechat.command(buffer, '/secure set wrecon_remote_bots_granted %s' % (WRECON_REMOTE_BOTS_GRANTED))
         f_message(data, buffer, v_topic, ['BOT SUCCESFULLY REVOKED'])
       else:
         f_message(data, buffer, v_err_topic, ['UNKNOWN BOT ID'])
